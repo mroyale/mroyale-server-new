@@ -1,0 +1,17 @@
+{
+  "name": "mroyale-server-new",
+  "version": "1.0.0",
+  "description": "Port project of the Mario Royale backend",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "terminalarch",
+  "license": "ISC",
+  "dependencies": {
+    "nodemon": "^2.0.16",
+    "serve": "^13.0.2",
+    "ws": "^8.6.0"
+  }
+}
