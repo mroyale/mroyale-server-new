@@ -63,6 +63,38 @@ server.on('connection', function(socket) {
 
                     break;
                 }
+
+                case "g03" : /* World load complete */ {
+                    if (socket.player === null) {
+                        if (socket.blocked) {
+                            console.log("Bytes don't exist LOL")
+                            break;
+                        }
+                        socket.close();
+                        break;
+                    }
+                    
+                    socket.player.onLoadComplete();
+                    break;
+                }
+
+                case "g50" : /* Vote to start */ {
+                    if (socket.player === null || socket.player.voted || socket.player.match.playing) break;
+
+                    socket.player.voted = true;
+                    socket.player.match.voteStart();
+
+                    break;
+                }
+
+                case "g51" : /* FORCE START */ {
+                    if (!socket.player.isDev) {
+                        socket.close();
+                        break;
+                    }
+
+                    socket.player.match.start(true)
+                }
             }
         }
     });
@@ -77,7 +109,7 @@ server.on('connection', function(socket) {
     /* Functions */
     function loginSuccess() {
         sendJSON({"packets": [
-            {"name": socket.player.name, "team": socket.player.team, "skin": socket.player.skin, "sid": "i-dont-know-for-what-this-is-used", "type": "l01"}
+            {"name": socket.player.name, "team": socket.player.team, "skin": socket.player.skin, "type": "l01"}
         ], "type": "s01"})
     }
 
