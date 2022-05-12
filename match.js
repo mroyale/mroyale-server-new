@@ -12,6 +12,8 @@ class Match {
         this.winners = 0;
         this.lastId = -1;
         this.players = []
+
+        this.tickTimer = setInterval(() => { this.tick(); }, 1000)
     }
 
     getNextPlayerId() {
@@ -22,6 +24,17 @@ class Match {
     addPlayer(player) {
         this.players.push(player);
         return this.getNextPlayerId();
+    }
+
+    broadJSON(data) {
+        for (var i=0; i<this.players.length; i++) {
+            var player = this.players[i];
+            player.sendJSON(data);
+        }
+    }
+
+    broadTick() {
+        this.broadJSON({"type":"gtk", "ticks":200, "votes":200000, "minPlayers": 100, "maxPlayers": 10, "voteRateToStart": 0.1})
     }
 
     broadLoadWorld() {
@@ -119,6 +132,10 @@ class Match {
         this.playing = true;
 
 
+    }
+
+    tick() {
+        this.broadTick();
     }
 }
 
