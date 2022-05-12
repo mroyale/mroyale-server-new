@@ -1,3 +1,5 @@
+const config = require('./server.json');
+
 class Match {
     constructor(server) {
         this.server = server;
@@ -11,9 +13,15 @@ class Match {
         this.votes = 0;
         this.winners = 0;
         this.lastId = -1;
-        this.players = []
+        this.players = [];
 
-        this.tickTimer = setInterval(() => { this.tick(); }, 1000)
+        this.tickTimer = setInterval(() => { this.tick(); }, 1000);
+
+        this.maxPlayers = config.match.maxPlayers;
+        this.minVotes = config.match.minVotePlayers;
+        this.voteRate = config.match.minVoteRate;
+        this.defaultTime = config.match.defaultTime;
+        this.ticks = this.defaultTime;
     }
 
     getNextPlayerId() {
@@ -34,7 +42,7 @@ class Match {
     }
 
     broadTick() {
-        this.broadJSON({"type":"gtk", "ticks":200, "votes":200000, "minPlayers": 100, "maxPlayers": 10, "voteRateToStart": 0.1})
+        this.broadJSON({"type":"gtk", "ticks": this.ticks, "votes": this.votes, "minPlayers": this.minVotes, "maxPlayers": this.maxPlayers, "voteRateToStart": this.voteRate})
     }
 
     broadLoadWorld() {
@@ -135,6 +143,9 @@ class Match {
     }
 
     tick() {
+        if (this.ticks > 0) {
+            this.ticks -= 1;
+        }
         this.broadTick();
     }
 }

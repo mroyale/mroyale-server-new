@@ -2,9 +2,10 @@ const WebSocket = require('ws');
 
 const { Player } = require('./player.js');
 const { Match } = require('./match.js');
+const config = require('./server.json');
 
 const server = new WebSocket.Server({
-  port: 9000
+  port: config.port
 });
 
 let sockets = [];

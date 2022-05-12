@@ -1,4 +1,5 @@
 const { ByteBuffer } = require('./buffer.js');
+const config = require('./server.json');
 
 class Player {
     constructor(server, name, team, skin, match, mode, isDev) {

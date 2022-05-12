@@ -1,0 +1,14 @@
+{
+    "port": 9000,
+    "game": {
+        "defaultName": "MARIO",
+        "defaultTeam": "",
+        "defaultSkin": 0
+    },
+    "match": {
+        "maxPlayers": 75,
+        "minVotePlayers": 5,
+        "minVoteRate": 0.85,
+        "defaultTime": 20
+    }
+}
