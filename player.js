@@ -39,7 +39,7 @@ class Player {
         this.lastX = this.posX;
         this.lastXOk = true;
 
-        this.id = 0;
+        this.id = match.addPlayer(this);
     }
 
     sendJSON(data) {
@@ -95,7 +95,7 @@ class Player {
     }
 
     onLoadComplete() {
-        if (this.loaded || this.pendingWorld !== null) return;
+        //if (this.loaded || this.pendingWorld !== null) return;
 
         this.level = 0;
         this.zone = 0;
@@ -106,7 +106,7 @@ class Player {
         this.loaded = true;
         this.pendingWorld = null;
 
-        console.log("ASSIGN PID HERE!!!");
+        this.client.send(new ByteBuffer().assignPid(), true);
 
         this.match.onPlayerReady(this);
     }

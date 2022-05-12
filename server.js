@@ -32,8 +32,28 @@ server.on('connection', function(socket) {
 
     // When you receive a message, send that message to every socket.
     socket.on('message', function(msg) {
-        let data = getJSON(msg);
+        var data;
+        var isBinary;
 
+        try {
+            data = getJSON(msg);
+            isBinary = false;
+        } catch {
+            isBinary = true;
+        }
+
+        isBinary ? onBinaryMessage() : onTextMessage(data);
+    });
+
+    // When a socket closes, or disconnects, remove it from the array.
+    socket.on('close', function() {
+        if (socket.stat === "g" && socket.player !== null) { console.log("TODO: Figure out removing player from match") }
+
+        sockets = sockets.filter(s => s !== socket);
+    });
+
+    /* Functions */
+    function onTextMessage(data) {
         if (socket.stat === "l") {
             switch (data.type) {
                 case "l00" : /* Input state ready */ {
@@ -58,7 +78,6 @@ server.on('connection', function(socket) {
                         return;
                     }
                     socket.pendingStat = null;
-
                     socket.player.onEnterIngame();
 
                     break;
@@ -74,6 +93,7 @@ server.on('connection', function(socket) {
                         break;
                     }
                     
+                    socket.lastXOk = true;
                     socket.player.onLoadComplete();
                     break;
                 }
@@ -97,16 +117,10 @@ server.on('connection', function(socket) {
                 }
             }
         }
-    });
+    }
 
-    // When a socket closes, or disconnects, remove it from the array.
-    socket.on('close', function() {
-        if (socket.stat === "g" && socket.player !== null) { console.log("TODO: Add match class") }
+    function onBinaryMessage() {}
 
-        sockets = sockets.filter(s => s !== socket);
-    });
-
-    /* Functions */
     function loginSuccess() {
         sendJSON({"packets": [
             {"name": socket.player.name, "team": socket.player.team, "skin": socket.player.skin, "type": "l01"}

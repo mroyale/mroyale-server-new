@@ -75,14 +75,14 @@ class Match {
 
     onPlayerReady(player) {
         if (!this.playing) {
-            this.autoStartTimer = setTimeout(() => { self.start(); }, 5000)
+            this.autoStartTimer = setTimeout(() => { this.start(); }, 5000)
         }
 
         if (this.world === "lobby" || !player.lobbier || !this.closed) {
             for (var i=0; i<this.players.length; i++) {
                 let player = this.players[i];
                 if (!player.loaded) continue;
-                player.sendBin(0x10, player.serializePlayerObject())
+                //player.sendBin(0x10, player.serializePlayerObject())
             }
 
             if (this.startTimer !== 0 || this.closed) {

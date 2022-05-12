@@ -4,6 +4,7 @@
   "description": "Port project of the Mario Royale backend",
   "main": "index.js",
   "scripts": {
+    "serve": "serve mroyale-client/",
     "dev": "nodemon server.js"
   },
   "keywords": [],

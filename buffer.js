@@ -1,17 +1,9 @@
 class ByteBuffer {
-    constructor(data) {
-        this.buffer = data;
+    constructor() {
     }
 
-    write(data) {
-        this.buffer += data;
-        return this;
-    }
-
-    read(length=1) {
-        let data = this.buffer.length;
-        this.buffer = this.buffer[length]
-        return data;
+    assignPid() {
+        return new Uint8Array([0x02, 0x00, 0x00, 0x00, 0x00, 0x00])
     }
 }
 
