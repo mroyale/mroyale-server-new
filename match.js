@@ -51,26 +51,35 @@ class Match {
     }
 
     broadPlayerList() {
-        let data = this.getPlayersData();
+        let devOnly = this.playing;   // Don't broad player list when in main game
+        let playersData = this.getPlayersData(false);
+        let playersDataDev = this.getPlayersData(true);
+        let data = {"packets": [
+            {"players": playersData,
+             "type": "g12"}
+        ], "type": "s01"}
+        let dataDev = {"packets": [
+            {"players": playersDataDev,
+             "type": "g12"}
+        ], "type": "s01"}
         for (var i=0; i<this.players.length; i++) {
-            let player = this.players[i];
-
-            if (!player.loaded) continue;
-            player.sendJSON({"packets": [
-                {"players": (data + ([!player.dead ? player.getSimpleData() : []])),
-                 "type": "g12"}
-            ], "type": "s01"})
+            var player = this.players[i];
+            if (player.isDev || !devOnly) {
+                if (!player.loaded) continue;
+                player.sendJSON(player.isDev ? dataDev : data)
+            }
         }
     }
 
-    getPlayersData() {
-        let playersData = [];
+    getPlayersData(isDev) {
+        let playersData = []
         for (var i=0; i<this.players.length; i++) {
             let player = this.players[i];
-            if (!player.loaded || player.dead) continue;
-
-            playersData.push(player.getSimpleData());
+            // We need to include even not loaded players as the remaining player count
+            // only updates on the start timer screen
+            playersData.push(player.getSimpleData(isDev))
         }
+        return playersData
     }
 
     onPlayerReady(player) {
