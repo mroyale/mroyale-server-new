@@ -68,7 +68,7 @@ class Player {
     }
 
     sendLevelSelect() {
-        this.sendJSON([{'shortId': 'SN', 'longId': 'world-sn.json'}]);
+        this.sendJSON({"type":"gll", "levels": [{shortId:"SN",longId:"world-1.json"}]});
     }
 
     setStartTimer(time) {
@@ -90,6 +90,7 @@ class Player {
         if (!this.dead) return;
 
         if (this.match.world == "lobby") {
+            if (this.isDev) this.sendLevelSelect();
             this.lobbier = true;
         }
 

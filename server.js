@@ -48,7 +48,9 @@ server.on('connection', function(socket) {
 
     // When a socket closes, or disconnects, remove it from the array.
     socket.on('close', function() {
-        if (socket.stat === "g" && socket.player !== null) { console.log("TODO: Figure out removing player from match") }
+        if (socket.stat === "g" && socket.player !== null && socket.player.match !== undefined) {
+            players = players.filter(ply => ply !== socket.player);
+        }
 
         sockets = sockets.filter(s => s !== socket);
     });

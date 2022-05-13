@@ -10,10 +10,10 @@
         "minVotePlayers": 1,
         "minVoteRate": 0.85,
         "defaultTime": 20,
-        "startTimer": 7
+        "startTimer": 10
     },
     "worlds": {
-        "royale": ["world-1", "world-special"],
+        "royale": ["world-1", "world-special", "world-p"],
         "pvp": [],
         "hell": []
     }

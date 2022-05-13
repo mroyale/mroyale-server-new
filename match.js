@@ -7,7 +7,9 @@ class Match {
         this.world = "lobby"
         this.closed = false;
         this.playing = false;
-        this.autoStartOn = (roomName === "" && isPrivate === true ? false : true);
+        this.roomName = roomName;
+        this.isPrivate = isPrivate;
+        this.autoStartOn = (this.roomName === "" && this.isPrivate === true ? false : true);
         this.autoStartTimer = null;
         this.startingTimer = null;
         this.startTimer = 0;
@@ -35,6 +37,13 @@ class Match {
         this.players.push(player);
         this.ticks = this.defaultTime;
         return this.getNextPlayerId();
+    }
+
+    getPlayer(id) {
+        for (var i=0; i<this.players.length; i++) {
+            var player = this.players[i];
+            if (player.id === id) return player;
+        }
     }
 
     broadJSON(data) {
