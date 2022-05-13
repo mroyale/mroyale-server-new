@@ -64,8 +64,7 @@ server.on('connection', function(socket) {
                         socket.close();
                     }
 
-                    let match = new Match(socket, data["team"], data["private"], data["gm"]);
-                    socket.player = new Player(socket, data["name"], data["team"], data["skin"], match, data["gm"], false);
+                    socket.player = new Player(socket, data["name"], data["team"], data["skin"], getMatch(data["team"], data["private"], data["gm"]), data["gm"], false);
                     players.push(socket.player);
                     loginSuccess();
 
@@ -123,6 +122,35 @@ server.on('connection', function(socket) {
     }
 
     function onBinaryMessage() {}
+
+    function getMatch(roomName, isPrivate, gameMode) {
+        if (isPrivate && roomName === "") /* Make new match for offline mode */ {
+            return new Match(socket, "", "", gameMode);
+        }
+
+        let fmatch = null;
+        for (var i=0; i<matches.length; i++) {
+            var match = matches[i];
+            if (!match.closed && match.players.length < config.match.maxPlayers && gameMode === match.mode && isPrivate === match.isPrivate) {
+                if (!match.allowLateEnter && match.playing) {
+                    continue;
+                }
+                fmatch = match;
+                break;
+            }
+        }
+
+        if (fmatch === null) {
+            fmatch = new Match(socket, roomName, isPrivate, gameMode);
+            matches.push(fmatch);
+        }
+
+        return fmatch;
+    }
+
+    function removeMatch(match) {
+        matches = matches.filter(match => match !== match);
+    }
 
     function loginSuccess() {
         sendJSON({"packets": [

@@ -18,6 +18,7 @@ class Match {
         this.lastId = -1;
         this.players = [];
         this.mode = mode;
+        this.allowLateEnter = config.match.allowLateEnter;
 
         this.tickTimer = setInterval(() => { this.tick(); }, 1000);
 

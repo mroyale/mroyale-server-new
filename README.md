@@ -11,3 +11,4 @@ Port project of the Mario Royale backend server in node.js
 - Can auto-start worlds
 - Can play gamemodes
 - Can randomly choose worlds
+- Players can now join the same match (next: serialize player object)
