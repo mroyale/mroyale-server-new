@@ -108,7 +108,7 @@ class Player {
         this.loaded = true;
         this.pendingWorld = null;
 
-        this.client.send(new ByteBuffer().assignPid(this.skin, this.isDev), true);
+        this.client.send(new ByteBuffer().assignPid(this.id, this.skin, this.isDev), true);
 
         this.match.onPlayerReady(this);
     }

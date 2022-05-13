@@ -1,12 +1,13 @@
 const config = require('./server.json');
 
 class Match {
-    constructor(server) {
+    constructor(server, roomName, isPrivate, mode) {
         this.server = server;
 
         this.world = "lobby"
         this.closed = false;
         this.playing = false;
+        this.autoStartOn = (roomName === "" && isPrivate === true ? false : true);
         this.autoStartTimer = null;
         this.startingTimer = null;
         this.startTimer = 0;
@@ -14,6 +15,7 @@ class Match {
         this.winners = 0;
         this.lastId = -1;
         this.players = [];
+        this.mode = mode;
 
         this.tickTimer = setInterval(() => { this.tick(); }, 1000);
 
@@ -105,9 +107,7 @@ class Match {
     }
 
     onPlayerReady(player) {
-        if (!this.playing) {
-            this.autoStartTimer = setTimeout(() => { this.start(); }, 5000)
-        }
+        if (!this.playing) { }
 
         if (this.world === "lobby" || !player.lobbier || !this.closed) {
             for (var i=0; i<this.players.length; i++) {
@@ -140,15 +140,27 @@ class Match {
         if (this.playing) return;
         this.playing = true;
 
+        var worlds = []
+        switch (this.mode) { /* TODO: use actual worlds from gamemode */
+            case 0 : { worlds = config.worlds.royale; break; }
+            case 1 : { worlds = config.worlds.royale; break; }
+            case 2 : { worlds = config.worlds.royale; break; }
+            default : { worlds = config.worlds.royale; break; }
+        }
+
+        this.world = worlds[Math.floor(Math.random() * worlds.length)];
+        this.broadLoadWorld();
+        setTimeout(() => { this.broadStartTimer(config.match.startTimer); }, 1000)
+
         console.log("Starting")
     }
 
     tick() {
         if (this.ticks > 0) {
-            this.ticks -= 1;
+            if (this.autoStartOn) this.ticks -= 1;
         } else {
-            clearInterval(this.tickTimer);
             this.start();
+            clearInterval(this.tickTimer);
         }
         this.broadTick();
     }

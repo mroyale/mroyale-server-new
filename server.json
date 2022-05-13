@@ -7,8 +7,14 @@
     },
     "match": {
         "maxPlayers": 75,
-        "minVotePlayers": 5,
+        "minVotePlayers": 1,
         "minVoteRate": 0.85,
-        "defaultTime": 20
+        "defaultTime": 20,
+        "startTimer": 7
+    },
+    "worlds": {
+        "royale": ["world-1", "world-special"],
+        "pvp": [],
+        "hell": []
     }
 }
