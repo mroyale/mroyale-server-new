@@ -2,8 +2,8 @@ class ByteBuffer {
     constructor() {
     }
 
-    assignPid() {
-        return new Uint8Array([0x02, 0x00, 0x00, 0x00, 0x00, 0x00])
+    assignPid(skin, isDev) {
+        return new Uint8Array([0x02, 0x00, 0x00, 0x00, skin, isDev])
     }
 }
 

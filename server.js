@@ -63,7 +63,7 @@ server.on('connection', function(socket) {
                     }
 
                     let match = new Match(socket);
-                    socket.player = new Player(socket, data["name"], data["team"], data["skin"], match, data["gm"], true);
+                    socket.player = new Player(socket, data["name"], data["team"], data["skin"], match, data["gm"], false);
                     players.push(socket.player);
                     loginSuccess();
 

@@ -11,7 +11,8 @@ class Player {
         this.mode = mode;
         this.isDev = isDev;
 
-        if (this.name.toLowerCase() in ["terminalkade", "casini loogi", "dimension", "nightcat"]) {
+        let developers = ["terminalarch", "casini loogi", "dimension", "nightcat"];
+        if (developers.includes(this.name.toLowerCase())) /* TODO: use client/account username */ {
             this.isDev = true;
         }
 
@@ -107,7 +108,7 @@ class Player {
         this.loaded = true;
         this.pendingWorld = null;
 
-        this.client.send(new ByteBuffer().assignPid(), true);
+        this.client.send(new ByteBuffer().assignPid(this.skin, this.isDev), true);
 
         this.match.onPlayerReady(this);
     }

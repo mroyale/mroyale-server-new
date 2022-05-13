@@ -31,6 +31,7 @@ class Match {
 
     addPlayer(player) {
         this.players.push(player);
+        this.ticks = this.defaultTime;
         return this.getNextPlayerId();
     }
 
@@ -139,12 +140,15 @@ class Match {
         if (this.playing) return;
         this.playing = true;
 
-
+        console.log("Starting")
     }
 
     tick() {
         if (this.ticks > 0) {
             this.ticks -= 1;
+        } else {
+            clearInterval(this.tickTimer);
+            this.start();
         }
         this.broadTick();
     }
