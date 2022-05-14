@@ -47,6 +47,11 @@ class Match {
         }
     }
 
+    getWinners() {
+        this.winners += 1;
+        return this.winners;
+    }
+
     broadJSON(data) {
         for (var i=0; i<this.players.length; i++) {
             var player = this.players[i];
@@ -123,7 +128,7 @@ class Match {
             for (var i=0; i<this.players.length; i++) {
                 let player = this.players[i];
                 if (!player.loaded) continue;
-                //player.sendBin(0x10, player.serializePlayerObject())
+                this.server.send(player.serializePlayerObject());
             }
 
             if (this.startTimer !== 0 || this.closed) {

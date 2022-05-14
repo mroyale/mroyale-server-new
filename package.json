@@ -11,6 +11,7 @@
   "author": "terminalarch",
   "license": "ISC",
   "dependencies": {
+    "discord-webhook-node": "^1.1.8",
     "nodejs-captcha": "^0.0.6",
     "nodemon": "^2.0.16",
     "serve": "^13.0.2",

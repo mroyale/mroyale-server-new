@@ -43,7 +43,7 @@ server.on('connection', function(socket) {
             isBinary = true;
         }
 
-        isBinary ? onBinaryMessage() : onTextMessage(data);
+        isBinary ? onBinaryMessage(msg) : onTextMessage(data);
     });
 
     // When a socket closes, or disconnects, remove it from the array.
@@ -121,7 +121,26 @@ server.on('connection', function(socket) {
         }
     }
 
-    function onBinaryMessage() {}
+    function onBinaryMessage(data) {
+        //const CODE_LENGTH = {0x10: 6, 0x11: 0, 0x12: 12, 0x13: 1, 0x17: 2, 0x18: 4, 0x19: 0, 0x20: 7, 0x30: 7};
+        const CODE_LENGTH = { 0x10: 6, 0x11: 0, 0x12: 12, 0x13: 1, 0x17: 2, 0x18: 4, 0x19: 0, 0x20: 7, 0x30: 7 }
+        const code = data[0];
+        
+        if(!(code in CODE_LENGTH)) {
+            console.error("PACKET NOT AVAILABLE: " + code);
+            return;
+        }
+
+        let length = CODE_LENGTH[code] + 1;
+        if (data.length < length) {
+            console.log("LENGTH CHECK FAILED");
+            return;
+        }
+
+        data = data.slice(1);
+
+        socket.player.handleBinary(code, data);
+    }
 
     function getMatch(roomName, isPrivate, gameMode) {
         if (isPrivate && roomName === "") /* Make new match for offline mode */ {

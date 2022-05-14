@@ -1,5 +1,7 @@
 const { ByteBuffer } = require('./buffer.js');
 const config = require('./server.json');
+const { Webhook, MessageBuilder } = require('discord-webhook-node');
+const webhook = new Webhook(config.webhookURL);
 
 class Player {
     constructor(server, name, team, skin, match, mode, isDev) {
@@ -64,7 +66,7 @@ class Player {
     }
 
     serializePlayerObject() {
-        return ByteBuffer().writeInt16(this.id).writeInt8(this.level).writeInt8(this.zone).writeShor2(this.posX, this.posY).toBytes()
+        return new ByteBuffer().serializePlayer(this.id, this.level, this.zone, this.skin, this.isDev);
     }
 
     sendLevelSelect() {
@@ -112,6 +114,37 @@ class Player {
         this.client.send(new ByteBuffer().assignPid(this.id, this.skin, this.isDev), true);
 
         this.match.onPlayerReady(this);
+    }
+
+    handleBinary(code, message) {
+        switch (code) {
+            case 0x10 : /* CREATE_PLAYER_OBJECT */ { break; }
+            case 0x18 : /* PLAYER_REQUEST_RESULT */ {
+                if (this.dead || this.win) { break; }
+
+                this.win = true;
+
+                let pos = this.match.getWinners();
+                var mode = this.match.mode;
+                switch (mode) {
+                    case 0x00 : { mode = "Vanilla"; break; }
+                    case 0x01 : { mode = "PVP"; break; }
+                    case 0x02 : { mode = "Hell"; break; }
+                }
+                switch(pos) {
+                    case 0x01 : {
+                        if (!this.match.isPrivate) {
+                            const embed = new MessageBuilder().setColor(0xffff00).setTitle(`**${this.name.toUpperCase()}** has achieved **#1** Victory Royale!`).addField('Map', this.match.world, true).addField('Mode', mode, true);
+                            webhook.send(embed);
+                            break;
+                        }
+                    }
+                }
+
+                console.log(message);
+                break;
+            }
+        }
     }
 }
 
