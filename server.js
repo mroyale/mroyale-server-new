@@ -126,7 +126,7 @@ server.on('connection', function(socket) {
         const CODE_LENGTH = { 0x10: 6, 0x11: 0, 0x12: 12, 0x13: 1, 0x17: 2, 0x18: 4, 0x19: 0, 0x20: 7, 0x30: 7 }
         const code = data[0];
         
-        if(!(code in CODE_LENGTH)) {
+        if(!(code in CODE_LENGTH) && code !== undefined) {
             console.error("PACKET NOT AVAILABLE: " + code);
             return;
         }

@@ -63,10 +63,16 @@ class Match {
         this.broadJSON({"type":"gtk", "ticks": this.ticks, "votes": this.votes, "minPlayers": this.minVotes, "maxPlayers": this.maxPlayers, "voteRateToStart": this.voteRate})
     }
 
+    getLoadMsg() {
+        var msg = { "game": this.world, "type": "g01" };
+        return JSON.stringify(msg);
+    }
+
     broadLoadWorld() {
+        let msg = this.getLoadMsg();
         for (var i=0; i<this.players.length; i++) {
             let player = this.players[i];
-            player.loadWorld(this.world);
+            player.loadWorld(this.world, msg);
         }
     }
 
@@ -128,7 +134,7 @@ class Match {
             for (var i=0; i<this.players.length; i++) {
                 let player = this.players[i];
                 if (!player.loaded) continue;
-                this.server.send(player.serializePlayerObject());
+                this.server.send(player.serializePlayerObject(), true);
             }
 
             if (this.startTimer !== 0 || this.closed) {

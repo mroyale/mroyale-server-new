@@ -1,7 +1,6 @@
 const { ByteBuffer } = require('./buffer.js');
 const config = require('./server.json');
 const { Webhook, MessageBuilder } = require('discord-webhook-node');
-const webhook = new Webhook(config.webhookURL);
 
 class Player {
     constructor(server, name, team, skin, match, mode, isDev) {
@@ -79,7 +78,7 @@ class Player {
         ], "type": "s01"})
     }
 
-    loadWorld(worldName) {
+    loadWorld(worldName, loadMsg) {
         this.dead = true;
         this.loaded = false;
         this.pendingWorld = worldName;
@@ -96,7 +95,7 @@ class Player {
             this.lobbier = true;
         }
 
-        this.loadWorld(this.match.world);
+        this.loadWorld(this.match.world, this.match.getLoadMsg());
     }
 
     onLoadComplete() {
@@ -133,7 +132,8 @@ class Player {
                 }
                 switch(pos) {
                     case 0x01 : {
-                        if (!this.match.isPrivate) {
+                        if (!this.match.isPrivate && config.webhookURL !== "") {
+                            const webhook = new Webhook(config.webhookURL);
                             const embed = new MessageBuilder().setColor(0xffff00).setTitle(`**${this.name.toUpperCase()}** has achieved **#1** Victory Royale!`).addField('Map', this.match.world, true).addField('Mode', mode, true);
                             webhook.send(embed);
                             break;

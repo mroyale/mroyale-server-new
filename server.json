@@ -11,7 +11,7 @@
         "minVotePlayers": 1,
         "minVoteRate": 0.85,
         "defaultTime": 20,
-        "startTimer": 10,
+        "startTimer": 7,
         "allowLateEnter": true
     },
     "worlds": {
