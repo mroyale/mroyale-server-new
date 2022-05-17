@@ -8,30 +8,32 @@ const server = new WebSocket.Server({
   port: config.port
 });
 
-let sockets = [];
-let players = [];
-let matches = [];
+let sockets = []; // connected users
+let players = []; // in-game players
+let matches = []; // public matches
+let authd = []; // authenticated users
 
 server.on('connection', function(socket) {
-    socket.server = socket;
-    socket.address = null; // "";
+    let self = socket;
 
-    socket.pendingStat = null;
-    socket.stat = null;
-    socket.player = null;
-    socket.trustCount = 0;
-    socket.blocked = false;
+    self.server = socket;
+    self.address = null; // "";
 
-    socket.username = "";
+    self.pendingStat = null;
+    self.stat = null;
+    self.player = null;
+    self.trustCount = 0;
+    self.blocked = false;
 
-    socket.lastX = 0;
-    socket.lastXOk = true;
+    self.username = "";
 
-    socket.dcTimer = null;
+    self.lastX = 0;
+    self.lastXOk = true;
+
+    self.dcTimer = null;
 
     setState("l");
 
-    // When you receive a message, send that message to every socket.
     socket.on('message', function(msg) {
         var data;
         var isBinary;
@@ -48,8 +50,8 @@ server.on('connection', function(socket) {
 
     // When a socket closes, or disconnects, remove it from the array.
     socket.on('close', function() {
-        if (socket.stat === "g" && socket.player !== null && socket.player.match !== undefined) {
-            players = players.filter(ply => ply !== socket.player);
+        if (self.stat === "g" && self.player !== null && self.player.match !== undefined) {
+            players = players.filter(ply => ply !== self.player);
         }
 
         sockets = sockets.filter(s => s !== socket);
@@ -57,72 +59,99 @@ server.on('connection', function(socket) {
 
     /* Functions */
     function onTextMessage(data) {
-        if (socket.stat === "l") {
+        if (self.stat === "l") {
             switch (data.type) {
                 case "l00" : /* Input state ready */ {
-                    if (socket.pendingStat === null) {
-                        socket.close();
+                    if (self.pendingStat === null) {
+                        self.close();
                     }
 
-                    socket.player = new Player(socket, data["name"], data["team"], data["skin"], getMatch(data["team"], data["private"], data["gm"]), data["gm"], false);
-                    players.push(socket.player);
+                    self.player = new Player(self, data["name"], data["team"], data["skin"], getMatch(data["team"], data["private"], data["gm"]), data["gm"], false);
+                    players.push(self.player);
                     loginSuccess();
 
                     setState("g"); // ingame
                     break;
                 }
+
+                case "llg" : /* Login */ {
+                    if (authd.includes(data["username"])) {
+                        sendJSON({"type":"llg", "status":false, "msg": "account already in use"})
+                    }
+
+                    let msg = {"type": "llg", "status": true, "msg": {"username":data["username"],"nickname":data["username"], "coins":420, "skins":[0,1,2,3], "skin":0}}
+                    self.username = data["username"];
+                    sendJSON(msg);
+                    break;
+                }
+
+                case "llo" : /* Logout */ {
+                    /*
+                        Sessions aren't being stored yet,
+                        so just remove name from authd.
+                        *TODO: Store sessions.*
+                    */
+                    if (!self.username) return;
+
+                    for (var i=0; i<authd.length; i++) {
+                        if (authd[i] === self.username) {
+                            authd.splice(i, 1);
+                        }
+                    }
+
+                    break;
+                }
             }
-        } else if (socket.stat === "g") {
+        } else if (self.stat === "g") {
             switch (data.type) {
                 case "g00" : /* Ingame state ready */ {
-                    if (socket.player === null || socket.pendingStat === null) {
-                        socket.close();
+                    if (self.player === null || self.pendingStat === null) {
+                        self.close();
                         return;
                     }
-                    socket.pendingStat = null;
-                    socket.player.onEnterIngame();
+                    self.pendingStat = null;
+                    self.player.onEnterIngame();
 
                     break;
                 }
 
                 case "g03" : /* World load complete */ {
-                    if (socket.player === null) {
-                        if (socket.blocked) {
+                    if (self.player === null) {
+                        if (self.blocked) {
                             console.log("Bytes don't exist LOL")
                             break;
                         }
-                        socket.close();
+                        self.close();
                         break;
                     }
                     
-                    socket.lastXOk = true;
-                    socket.player.onLoadComplete();
+                    self.lastXOk = true;
+                    self.player.onLoadComplete();
                     break;
                 }
 
                 case "g50" : /* Vote to start */ {
-                    if (socket.player === null || socket.player.voted || socket.player.match.playing) break;
+                    if (self.player === null || self.player.voted || self.player.match.playing) break;
 
-                    socket.player.voted = true;
-                    socket.player.match.voteStart();
+                    self.player.voted = true;
+                    self.player.match.voteStart();
 
                     break;
                 }
 
                 case "g51" : /* FORCE START */ {
-                    if (!socket.player.isDev) {
-                        socket.close();
+                    if (!self.player.isDev) {
+                        self.close();
                         break;
                     }
 
-                    socket.player.match.start(true)
+                    self.player.match.start(true)
                 }
             }
         }
     }
 
     function onBinaryMessage(data) {
-        //const CODE_LENGTH = {0x10: 6, 0x11: 0, 0x12: 12, 0x13: 1, 0x17: 2, 0x18: 4, 0x19: 0, 0x20: 7, 0x30: 7};
         const CODE_LENGTH = { 0x10: 6, 0x11: 0, 0x12: 12, 0x13: 1, 0x17: 2, 0x18: 4, 0x19: 0, 0x20: 7, 0x30: 7 }
         const code = data[0];
         
@@ -139,7 +168,7 @@ server.on('connection', function(socket) {
 
         data = data.slice(1);
 
-        socket.player.handleBinary(code, data);
+        self.player.handleBinary(code, data);
     }
 
     function getMatch(roomName, isPrivate, gameMode) {
@@ -173,30 +202,30 @@ server.on('connection', function(socket) {
 
     function loginSuccess() {
         sendJSON({"packets": [
-            {"name": socket.player.name, "team": socket.player.team, "skin": socket.player.skin, "type": "l01"}
+            {"name": self.player.name, "team": self.player.team, "skin": self.player.skin, "type": "l01"}
         ], "type": "s01"})
     }
 
     function setState(state) {
-        socket.stat = socket.pendingStat = state;
+        self.stat = self.pendingStat = state;
         sendJSON({"packets": [
             {"state": state, "type": "s00"}
         ], "type": "s01"})
     };
 
     function block(reason) {
-        socket.blocked = true;
+        self.blocked = true;
     };
 
     function sendJSON(data) {
-        socket.send(JSON.stringify(data));
+        self.send(JSON.stringify(data));
     };
 
     function getJSON(data) {
         return JSON.parse(data);
     };
 
-    sockets.push(socket);
+    sockets.push(self);
 });
 
 console.log("Opened log");

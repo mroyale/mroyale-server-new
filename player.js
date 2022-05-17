@@ -13,7 +13,7 @@ class Player {
         this.isDev = isDev;
 
         let developers = ["terminalarch", "casini loogi", "dimension", "nightcat"];
-        if (developers.includes(this.name.toLowerCase())) /* TODO: use client/account username */ {
+        if (developers.includes(this.client.username.toLowerCase())) {
             this.isDev = true;
         }
 
