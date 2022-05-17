@@ -1,4 +1,5 @@
 const config = require('./server.json');
+const { ByteBuffer } = require('./buffer.js');
 
 class Match {
     constructor(server, roomName, isPrivate, mode) {
