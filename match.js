@@ -70,6 +70,14 @@ class Match {
         }
     }
 
+    broadWin(id, pos) {
+        for (var i=0; i<this.players.length; i++) {
+            var player = this.players[i];
+            if (!player.loaded) return;
+            this.server.send(new ByteBuffer().broadWin(id, pos), true)
+        }
+    }
+
     broadTick() {
         this.broadJSON({"type":"gtk", "ticks": this.ticks, "votes": this.votes, "minPlayers": this.minVotes, "maxPlayers": this.maxPlayers, "voteRateToStart": this.voteRate})
     }

@@ -141,7 +141,7 @@ class Player {
                     }
                 }
 
-                this.client.send(new ByteBuffer().broadWin(this.id, pos), true)
+                this.match.broadWin(this.id, pos);
                 break;
             }
         }
