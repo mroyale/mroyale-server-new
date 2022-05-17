@@ -13,3 +13,4 @@ Port project of the Mario Royale backend server in node.js
 - Can randomly choose worlds
 - Players can now join the same match (next: serialize player object)
 - Can initiate victory sequence (TODO: implement broadbin thinf)
+- Can play PVP

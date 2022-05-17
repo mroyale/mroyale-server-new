@@ -38,7 +38,21 @@ class Match {
     addPlayer(player) {
         this.players.push(player);
         this.ticks = this.defaultTime;
+
+        if (this.mode === 1 /* PvP */ && this.players.length === 1) {
+            this.autoStartOn = false;
+        } else if (this.mode === 1 /* PvP */ && this.players.length > 1) {
+            this.autoStartOn = true;
+        }
+
         return this.getNextPlayerId();
+    }
+
+    removePlayer(player) {
+        this.players.filter(players => players !== player);
+        if (this.mode === 1 /* PvP */ && this.players.length === 1) {
+            this.autoStartOn = false;
+        }
     }
 
     getPlayer(id) {
@@ -202,7 +216,7 @@ class Match {
         this.broadLoadWorld();
         setTimeout(() => { this.broadStartTimer(config.match.startTimer); }, 1000)
 
-        console.log("Starting")
+        console.log("Starting match with", this.players.length, "players")
     }
 
     tick() {

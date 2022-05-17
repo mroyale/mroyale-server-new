@@ -52,17 +52,16 @@ server.on('connection', function(socket) {
     socket.on('close', function() {
         if (self.stat === "g" && self.player !== null && self.player.match !== undefined) {
             players = players.filter(ply => ply !== self.player);
+            if (self.player.match.players.length - 1 === 0) removeMatch(self.player.match)
+            self.player.match.removePlayer(this);
         }
 
-        if (self.player.match.players.length - 1 === 0) {
-            removeMatch(self.player.match);
+        if (self.player) {
+            self.player.match = null;
+            self.player = null;
+            self.pendingStat = null;
+            self.stat = "";
         }
-        if (self.player.match) self.player.match.removePlayer(this);
-
-        self.player.match = null;
-        self.player = null;
-        self.pendingStat = null;
-        self.stat = "";
 
         sockets = sockets.filter(s => s !== socket);
     });
@@ -91,6 +90,8 @@ server.on('connection', function(socket) {
 
                     let msg = {"type": "llg", "status": true, "msg": {"username":data["username"],"nickname":data["username"], "squad": "lol", "coins":420, "skins":[0,1,2,3], "skin":0}}
                     self.username = data["username"];
+                    authd.push(data["username"])
+
                     sendJSON(msg);
                     break;
                 }
