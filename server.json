@@ -15,7 +15,7 @@
         "allowLateEnter": true
     },
     "worlds": {
-        "royale": ["world-1", "world-special", "world-p"],
+        "royale": ["tester"],
         "pvp": [],
         "hell": []
     }

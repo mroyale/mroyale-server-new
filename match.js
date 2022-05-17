@@ -59,6 +59,17 @@ class Match {
         }
     }
 
+    broadBin(code, buff, ignore=false) {
+        for (var i=0; i<this.players.length; i++) {
+            var player = this.players[i];
+            if (!player.loaded || (ignore !== false && player.id === ignore)) {
+                return;
+            }
+
+            player.sendBin(code, [buff[0], buff[1], buff[2], buff[3], buff[4]])
+        }
+    }
+
     broadTick() {
         this.broadJSON({"type":"gtk", "ticks": this.ticks, "votes": this.votes, "minPlayers": this.minVotes, "maxPlayers": this.maxPlayers, "voteRateToStart": this.voteRate})
     }

@@ -79,7 +79,7 @@ server.on('connection', function(socket) {
                         sendJSON({"type":"llg", "status":false, "msg": "account already in use"})
                     }
 
-                    let msg = {"type": "llg", "status": true, "msg": {"username":data["username"],"nickname":data["username"], "coins":420, "skins":[0,1,2,3], "skin":0}}
+                    let msg = {"type": "llg", "status": true, "msg": {"username":data["username"],"nickname":data["username"], "squad": "lol", "coins":420, "skins":[0,1,2,3], "skin":0}}
                     self.username = data["username"];
                     sendJSON(msg);
                     break;

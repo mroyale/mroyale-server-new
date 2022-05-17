@@ -54,8 +54,8 @@ class Player {
     }
 
     sendBin(code, buff) {
-        let msg
-        this.client.send();
+        let msg = new Uint8Array([code, buff[0], buff[1] || 0x00, buff[2] || 0x00, buff[3] || 0x00, buff[4] || 0x00])
+        this.client.send(msg, true);
     }
 
     getSimpleData(isDev) {
@@ -141,10 +141,18 @@ class Player {
                     }
                 }
 
-                console.log(message);
+                this.client.send(new ByteBuffer().broadWin(this.id, pos), true)
                 break;
             }
         }
+    }
+
+    addCoin() {
+        if (!this.lobbier) {
+            this.coins += 1;
+        }
+
+        this.client.send(new ByteBuffer().addCoin(), true);
     }
 }
 
