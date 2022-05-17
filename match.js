@@ -74,7 +74,7 @@ class Match {
         for (var i=0; i<this.players.length; i++) {
             var player = this.players[i];
             if (!player.loaded) return;
-            this.server.send(new ByteBuffer().broadWin(id, pos), true)
+            player.socket.send(new ByteBuffer().broadWin(id, pos), true)
         }
     }
 
