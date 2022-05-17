@@ -18,14 +18,14 @@ server.on('connection', function(socket) {
 
     self.server = socket;
     self.address = null; // "";
+    self.account = null;
+    self.username = "";
 
     self.pendingStat = null;
     self.stat = null;
     self.player = null;
     self.trustCount = 0;
     self.blocked = false;
-
-    self.username = "";
 
     self.lastX = 0;
     self.lastXOk = true;
@@ -85,12 +85,17 @@ server.on('connection', function(socket) {
                 }
 
                 case "llg" : /* Login */ {
+                    if (self.username !== "" || self.account) {
+                        socket.close();
+                    }
+
                     if (authd.includes(data["username"])) {
                         sendJSON({"type":"llg", "status":false, "msg": "account already in use"})
                     }
 
                     let msg = {"type": "llg", "status": true, "msg": {"username":data["username"],"nickname":data["username"], "squad": "lol", "coins":420, "skins":[0,1,2,3], "skin":0}}
                     self.username = data["username"];
+                    self.account = msg["msg"];
                     authd.push(data["username"])
 
                     sendJSON(msg);
