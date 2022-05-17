@@ -54,6 +54,16 @@ server.on('connection', function(socket) {
             players = players.filter(ply => ply !== self.player);
         }
 
+        if (self.player.match.players.length - 1 === 0) {
+            removeMatch(self.player.match);
+        }
+        if (self.player.match) self.player.match.removePlayer(this);
+
+        self.player.match = null;
+        self.player = null;
+        self.pendingStat = null;
+        self.stat = "";
+
         sockets = sockets.filter(s => s !== socket);
     });
 

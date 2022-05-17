@@ -148,6 +148,14 @@ class Player {
                 this.match.broadWin(this.id, pos);
                 break;
             }
+
+            case 0x20 : /* OBJECT_EVENT_TRIGGER */ {
+                if (this.dead) return;
+
+                this.match.objectEventTrigger(message);
+
+                break;
+            }
         }
     }
 

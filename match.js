@@ -169,6 +169,15 @@ class Match {
         }
     }
 
+    objectEventTrigger(data) {
+        for (var i=0; i<this.players.length; i++) {
+            var player = this.players[i];
+            if (!player.loaded) continue;
+
+            player.client.send(new Uint8Array([0x20, 0xa0, 0xa0, 0xa0, 0xa0, 0xa0]))
+        }
+    }
+
     voteStart() {
         this.votes += 1;
 
