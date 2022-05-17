@@ -17,7 +17,11 @@ class Player {
             this.isDev = true;
         }
 
-        if (this.name.length === 0) { this.name = "MARIO" };
+        if (this.name.length === (0 || undefined)) { this.name = config.game.defaultName };
+        if (this.team.length === (0 || undefined)) { this.team = config.game.defaultTeam };
+
+        this.team = this.team.toUpperCase();
+        this.team.length > 3 ? this.team.length = 3 : this.team.length;
 
         this.pendingWorld = null;
 
