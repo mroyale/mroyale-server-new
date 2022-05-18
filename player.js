@@ -152,7 +152,7 @@ class Player {
             case 0x20 : /* OBJECT_EVENT_TRIGGER */ {
                 if (this.dead) return;
 
-                this.match.objectEventTrigger(message);
+                this.match.objectEventTrigger(this.id, message);
 
                 break;
             }

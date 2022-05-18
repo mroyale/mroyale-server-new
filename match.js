@@ -189,12 +189,14 @@ class Match {
         }
     }
 
-    objectEventTrigger(data) {
+    objectEventTrigger(id, data) {
         for (var i=0; i<this.players.length; i++) {
             var player = this.players[i];
             if (!player.loaded) continue;
 
-            player.client.send(new Uint8Array([0x20, 0xa0, 0xa0, 0xa0, 0xa0, 0xa0]))
+            console.log(Buffer.from(data))
+
+            player.client.send(new Uint8Array([0x20, 0x00, id, 0x00, 0xa0, 0x00]))
         }
     }
 
@@ -213,8 +215,8 @@ class Match {
         var worlds = []
         switch (this.mode) { /* TODO: use actual worlds from gamemode */
             case 0 : { worlds = config.worlds.royale; break; }
-            case 1 : { worlds = config.worlds.royale; break; }
-            case 2 : { worlds = config.worlds.royale; break; }
+            case 1 : { worlds = (config.worlds.pvp !== [] ? config.worlds.pvp : config.worlds.royale); break; }
+            case 2 : { worlds = (config.worlds.hell !== [] ? config.worlds.hell : config.worlds.royale); break; }
             default : { worlds = config.worlds.royale; break; }
         }
 
