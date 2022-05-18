@@ -194,9 +194,12 @@ class Match {
             var player = this.players[i];
             if (!player.loaded) continue;
 
-            console.log(Buffer.from(data))
+            let level = data[0];
+            let zone = data[1];
+            console.log("object level:"+level);
+            console.log("object zone:"+zone)
 
-            player.client.send(new Uint8Array([0x20, 0x00, id, 0x00, 0xa0, 0x00]))
+            player.client.send(new Uint8Array([0x20, id, level, zone, 196644, 17]), true)
         }
     }
 

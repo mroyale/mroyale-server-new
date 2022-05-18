@@ -52,7 +52,6 @@ server.on('connection', function(socket) {
     // When a socket closes, or disconnects, remove it from the array.
     socket.on('close', function() {
         if (self.stat === "g" && self.player !== null) {
-            console.log((self.stat === "g"), (self.player !== null))
             players = players.filter(ply => ply !== self.player);
             if (self.player.match.players.length - 1 === 0) removeMatch(self.player.match)
             self.player.match.removePlayer(this);
@@ -264,4 +263,4 @@ server.on('connection', function(socket) {
     sockets.push(self);
 });
 
-console.log("Opened log");
+console.log("Log opened.");
