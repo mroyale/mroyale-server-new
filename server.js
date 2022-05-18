@@ -231,7 +231,7 @@ server.on('connection', function(socket) {
     function updateMatch(match, value, newValue) {
         for (var i=0; i<matches.length; i++) {
             if (matches[i] === match) {
-                matches[i]["value"] = newValue;
+                matches[i][value] = newValue;
             }
         }
     }
