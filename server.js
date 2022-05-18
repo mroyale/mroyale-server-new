@@ -225,6 +225,14 @@ server.on('connection', function(socket) {
         matches = matches.filter(match => match !== match);
     }
 
+    function updateMatch(match, value, newValue) {
+        for (var i=0; i<matches.length; i++) {
+            if (matches[i] === match) {
+                matches[i]["value"] = newValue;
+            }
+        }
+    }
+
     function loginSuccess() {
         sendJSON({"packets": [
             {"name": self.player.name, "team": self.player.team, "skin": self.player.skin, "type": "l01"}
