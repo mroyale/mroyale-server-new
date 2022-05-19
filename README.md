@@ -13,3 +13,4 @@ Port project of the Mario Royale backend server in node.js
 - Can now load levels from server side and client side alike with error handling
 ## TODO
 - Implement object triggers now that levels can be loaded from the server
+^ This includes things such as: collecting coins, riding bus platforms, killing enemies, etc..
