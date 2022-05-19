@@ -10,12 +10,12 @@
         "maxPlayers": 75,
         "minVotePlayers": 1,
         "minVoteRate": 0.85,
-        "defaultTime": 0,
+        "defaultTime": 20,
         "startTimer": 0.5,
         "allowLateEnter": true
     },
     "worlds": {
-        "royale": ["world-1", "world-p"],
+        "royale": ["world-1", "world-p", "world-special", "world-pastel"],
         "pvp": [],
         "hell": []
     }

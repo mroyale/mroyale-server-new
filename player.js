@@ -82,13 +82,20 @@ class Player {
         ], "type": "s01"})
     }
 
-    loadWorld(worldName, loadMsg) {
+    loadWorld(worldName, loadMsg, levelData) {
         this.dead = true;
         this.loaded = false;
         this.pendingWorld = worldName;
-        this.sendJSON({"packets": [
-            {"game": worldName, "type": "g01"}
-        ], "type": "s01"})
+        
+        if (levelData) {
+            this.sendJSON({"packets": [
+                { "game": "custom", "levelData": JSON.stringify(levelData), "type": "g01" }
+            ], "type": "s01"})
+        } else {
+            this.sendJSON({"packets": [
+                JSON.parse(loadMsg)
+            ], "type": "s01"})
+        }
     }
 
     onEnterIngame() {
@@ -99,7 +106,7 @@ class Player {
             this.lobbier = true;
         }
 
-        this.loadWorld(this.match.world, this.match.getLoadMsg());
+        this.loadWorld(this.match.world, this.match.getLoadMsg(), this.match.getLevelData());
     }
 
     onLoadComplete() {

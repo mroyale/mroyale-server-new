@@ -1,5 +1,6 @@
 const config = require('./server.json');
 const { ByteBuffer } = require('./buffer.js');
+const fs = require('fs');
 
 class Match {
     constructor(server, roomName, isPrivate, mode) {
@@ -52,7 +53,6 @@ class Match {
         for (var i=0; i<this.players.length; i++) {
             if (this.players[i] === player) {
                 this.players.splice(i, 1);
-                console.log(this.players)
             }
         }
         this.players.filter(players => players !== player);
@@ -110,9 +110,11 @@ class Match {
 
     broadLoadWorld() {
         let msg = this.getLoadMsg();
+        let data = this.getLevelData();
+
         for (var i=0; i<this.players.length; i++) {
             let player = this.players[i];
-            player.loadWorld(this.world, msg);
+            player.loadWorld(this.world, msg, data);
         }
     }
 
@@ -216,7 +218,7 @@ class Match {
         this.playing = true;
 
         var worlds = []
-        switch (this.mode) { /* TODO: use actual worlds from gamemode */
+        switch (this.mode) {
             case 0 : { worlds = config.worlds.royale; break; }
             case 1 : { worlds = (config.worlds.pvp !== [] ? config.worlds.pvp : config.worlds.royale); break; }
             case 2 : { worlds = (config.worlds.hell !== [] ? config.worlds.hell : config.worlds.royale); break; }
@@ -227,7 +229,7 @@ class Match {
         this.broadLoadWorld();
         setTimeout(() => { this.broadStartTimer(config.match.startTimer); }, 1000)
 
-        console.log("Starting match with", this.players.length, "players")
+        console.log("Starting match [" + this.players.length, "players //", this.world + "]")
     }
 
     tick() {
@@ -238,6 +240,17 @@ class Match {
             clearInterval(this.tickTimer);
         }
         this.broadTick();
+    }
+
+    getLevelData() {
+        if (fs.existsSync('./worlds/' + this.world + '.json')) {
+            const levelData = require('./worlds/' + this.world + '.json')
+            this.levelData = levelData;
+            return levelData;
+        } else {
+            return false;
+        }
+
     }
 }
 
