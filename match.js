@@ -12,7 +12,7 @@ class Match {
         this.roomName = roomName;
         this.isPrivate = isPrivate;
         this.autoStartOn = (this.roomName === "" && this.isPrivate === true ? false : true);
-        this.autoStartTimer = null;
+        this.forceStopped = false;
         this.startingTimer = null;
         this.startTimer = 0;
         this.votes = 0;
@@ -42,7 +42,7 @@ class Match {
 
         if (this.mode === 1 /* PvP */ && this.players.length === 1) {
             this.autoStartOn = false;
-        } else if (this.mode === 1 /* PvP */ && this.players.length > 1) {
+        } else if (this.mode === 1 /* PvP */ && this.players.length > 1 && !this.forceStopped) {
             this.autoStartOn = true;
         }
 
@@ -218,18 +218,19 @@ class Match {
         this.playing = true;
 
         var worlds = []
+        var mode = "Royale";
         switch (this.mode) {
             case 0 : { worlds = config.worlds.royale; break; }
-            case 1 : { worlds = (config.worlds.pvp !== [] ? config.worlds.pvp : config.worlds.royale); break; }
-            case 2 : { worlds = (config.worlds.hell !== [] ? config.worlds.hell : config.worlds.royale); break; }
+            case 1 : { worlds = (config.worlds.pvp.length !== 0 ? config.worlds.pvp : config.worlds.royale); mode = "PVP"; break; }
+            case 2 : { worlds = (config.worlds.hell.length !== 0 ? config.worlds.hell : config.worlds.royale); mode = "Hell"; break; }
             default : { worlds = config.worlds.royale; break; }
         }
-
+        
         this.world = worlds[Math.floor(Math.random() * worlds.length)];
         this.broadLoadWorld();
         setTimeout(() => { this.broadStartTimer(config.match.startTimer); }, 1000)
 
-        console.log("Starting match [" + this.players.length, "players //", this.world + "]")
+        console.log("Starting match [", this.players.length, "players //", this.world, "//", mode, "]")
     }
 
     tick() {

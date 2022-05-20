@@ -2,7 +2,7 @@
   "name": "mroyale-server-new",
   "version": "1.0.0",
   "description": "Port project of the Mario Royale backend",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "serve": "serve mroyale-client/",
     "dev": "nodemon server.js"

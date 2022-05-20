@@ -1,5 +1,6 @@
 const WebSocket = require('ws');
 let Captcha = require('nodejs-captcha');
+const fs = require('fs');
 
 const { Player } = require('./player.js');
 const { Match } = require('./match.js');
@@ -173,13 +174,25 @@ server.on('connection', function(socket) {
                     }
 
                     self.player.match.start(true)
+                    break;
+                }
+
+                case "gst" : /* TOGGLE TIMER (future proof) */ {
+                    if (!self.player.isDev) {
+                        self.close();
+                        break;
+                    }
+                    
+                    self.player.match.autoStartOn = !self.player.match.autoStartOn;
+                    self.player.match.forceStopped = !self.player.match.forceStopped;
+                    break;
                 }
             }
         }
     }
 
     function onBinaryMessage(data) {
-        const CODE_LENGTH = { 0x10: 6, 0x11: 0, 0x12: 12, 0x13: 1, 0x17: 2, 0x18: 4, 0x19: 0, 0x20: 7, 0x30: 7 }
+        const CODE_LENGTH = { 0x10: 6, 0x11: 0, 0x12: 12, 0x13: 1, 0x17: 2, 0x18: 4, 0x19: 0, 0x20: 7, 0x21: 7, 0x30: 7 }
         const code = data[0];
         
         if(!(code in CODE_LENGTH) && code !== undefined) {
@@ -263,4 +276,22 @@ server.on('connection', function(socket) {
     sockets.push(self);
 });
 
+
+class MarioRoyaleSocket {
+    constructor() {
+        this.statusPath = config.main.statusURL;
+        setInterval(() => this.generalUpdate(), 5000);
+    }
+
+    generalUpdate() {
+        console.log("Players online:", players.length, "//", "Active matches:", matches.length);
+
+        if (!fs.existsSync(this.statusPath)) return;
+
+        let obj = {"active": players.length, "maintenance": false};
+        fs.writeFileSync(this.statusPath, JSON.stringify(obj), (err) => {});
+    }
+}
+
+let factory = new MarioRoyaleSocket();
 console.log("Log opened.");

@@ -126,7 +126,7 @@ class Player {
         this.match.onPlayerReady(this);
     }
 
-    handleBinary(code, message) {
+    handleBinary(code, message) /* NETX_DECODE */ {
         switch (code) {
             case 0x10 : /* CREATE_PLAYER_OBJECT */ { break; }
             case 0x18 : /* PLAYER_REQUEST_RESULT */ {
@@ -161,6 +161,14 @@ class Player {
 
                 this.match.objectEventTrigger(this.id, message);
 
+                break;
+            }
+
+            case 0x21 : /* GET_COINS */ {
+                // This packet is sent when the player object spawns for whatever reason.
+                // It has no ingame use and it's not even implemented in PyRoyale, but i'll just make this send the coin count.
+
+                this.client.send(new Uint8Array([0x21, 0x00, this.coins, 0x00, 0x00, 0x00]));
                 break;
             }
         }

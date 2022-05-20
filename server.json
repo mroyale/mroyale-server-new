@@ -1,6 +1,9 @@
 {
     "port": 9000,
     "webhookURL": "",
+    "main": {
+        "statusURL": "./mroyale-client/status.json"
+    },
     "game": {
         "defaultName": "MARIO",
         "defaultTeam": "",
