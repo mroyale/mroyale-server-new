@@ -196,12 +196,8 @@ class Match {
             var player = this.players[i];
             if (!player.loaded) continue;
 
-            let level = data[0];
-            let zone = data[1];
-            console.log("object level:"+level);
-            console.log("object zone:"+zone)
-
-            player.client.send(new Uint8Array([0x20, id, level, zone, 196644, 17]), true)
+            const decoded = Buffer.from(data);
+            console.log(decoded)
         }
     }
 
@@ -218,7 +214,7 @@ class Match {
         this.playing = true;
 
         var worlds = []
-        var mode = "Royale";
+        var mode = "Vanilla";
         switch (this.mode) {
             case 0 : { worlds = config.worlds.royale; break; }
             case 1 : { worlds = (config.worlds.pvp.length !== 0 ? config.worlds.pvp : config.worlds.royale); mode = "PVP"; break; }

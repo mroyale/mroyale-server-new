@@ -280,11 +280,12 @@ server.on('connection', function(socket) {
 class MarioRoyaleSocket {
     constructor() {
         this.statusPath = config.main.statusURL;
+        this.log = false;
         setInterval(() => this.generalUpdate(), 5000);
     }
 
     generalUpdate() {
-        console.log("Players online:", players.length, "//", "Active matches:", matches.length);
+        if (this.log) console.log("Players online:", players.length, "//", "Active matches:", matches.length);
 
         if (!fs.existsSync(this.statusPath)) return;
 

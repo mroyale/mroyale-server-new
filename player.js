@@ -17,8 +17,8 @@ class Player {
             this.isDev = true;
         }
 
-        if (this.name.length === (0 || undefined)) { this.name = config.game.defaultName };
-        if (this.team.length === (0 || undefined)) { this.team = config.game.defaultTeam };
+        if (this.name.length === 0) { this.name = config.game.defaultName };
+        if (this.team.length === 0) { this.team = config.game.defaultTeam };
 
         this.team = this.team.toUpperCase();
         this.team.length > 3 ? this.team.length = 3 : this.team.length;
@@ -145,7 +145,7 @@ class Player {
                     case 0x01 : {
                         if (!this.match.isPrivate && config.webhookURL !== "") {
                             const webhook = new Webhook(config.webhookURL);
-                            const embed = new MessageBuilder().setColor(0xffff00).setTitle(`**${this.name.toUpperCase()}** has achieved **#1** Victory Royale!`).addField('Map', this.match.world, true).addField('Mode', mode, true);
+                            const embed = new MessageBuilder().setColor(0xffff00).setTitle(`**${this.name.toUpperCase()}** has achieved **#1** Victory Royale!`).addField('Map', this.match.levelData ? this.match.levelData["shortname"] : this.match.world, true).addField('Mode', mode, true);
                             webhook.send(embed);
                             break;
                         }
