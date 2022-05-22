@@ -1,6 +1,7 @@
 {
     "port": 9000,
     "webhookURL": "",
+    "blockWebhookURL": "",
     "main": {
         "statusURL": "./mroyale-client/status.json"
     },

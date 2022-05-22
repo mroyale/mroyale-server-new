@@ -156,6 +156,21 @@ class Player {
                 break;
             }
 
+            case 0x19 : /* PLAYER_SNITCH */ {
+                if (config.blockWebhookURL !== "" && !this.client.blocked) {
+                    const webhook = new Webhook(config.blockWebhookURL);
+                    const embed = new MessageBuilder()
+                                        .setColor(0x267B8B)
+                                        .setTitle(`Player blocked: **${this.name.toUpperCase()}**`)
+                                        .addField('Map', this.match.world, true)
+                                        .addField('Reason', 'reason packet TBAdded', true);
+                    webhook.send(embed);
+                    this.client.blocked = true;
+                    this.client.close();
+                    break;
+                }
+            }
+
             case 0x20 : /* OBJECT_EVENT_TRIGGER */ {
                 if (this.dead) return;
 
