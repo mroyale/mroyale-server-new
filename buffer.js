@@ -17,6 +17,10 @@ class ByteBuffer {
     broadWin(id, pos) {
         return new Uint8Array([0x18, id, 0x00, pos, pos, 0x18])
     }
+
+    writeShor2(/* short */ a, /* short */ b) {
+        return 0 | (parseInt(a) & 0x0000FFFF) | ((parseInt(b) << 16) & 0xFFFF0000);
+    }
 }
 
 module.exports = { ByteBuffer };

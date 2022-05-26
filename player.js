@@ -1,6 +1,7 @@
-const { ByteBuffer } = require('./buffer.js');
 const config = require('./server.json');
 const { Webhook, MessageBuilder } = require('discord-webhook-node');
+const { ByteBuffer } = require('./buffer.js');
+const { Shor2 } = require('./util/shor2.js');
 
 class Player {
     constructor(server, name, team, skin, match, mode, isDev) {
@@ -128,7 +129,24 @@ class Player {
 
     handleBinary(code, message) /* NETX_DECODE */ {
         switch (code) {
-            case 0x10 : /* CREATE_PLAYER_OBJECT */ { break; }
+            case 0x10 : /* CREATE_PLAYER_OBJECT */ {
+                var level = message[0];
+                var zone = message[1];
+
+                this.level = level;
+                this.zone = zone;
+                this.dead = false;
+
+                for (var i=0; i<this.match.players.length; i++) {
+                    var player = this.match.players[i];
+                    var pos = 0 | (parseInt(this.posX) & 0x0000FFFF) | ((parseInt(this.posY) << 16) & 0xFFFF0000);
+                    player.client.send(new Uint8Array([0x10, 0x00, this.id, 0x00, level, zone]), true)
+                }
+
+                console.log("CREATE_PLAYER_OBJECT", level, zone);
+                break;
+            }
+
             case 0x18 : /* PLAYER_REQUEST_RESULT */ {
                 if (this.dead || this.win) { break; }
 
@@ -157,6 +175,8 @@ class Player {
             }
 
             case 0x19 : /* PLAYER_SNITCH */ {
+                if (this.isDev) return;
+
                 if (config.blockWebhookURL !== "" && !this.client.blocked) {
                     const webhook = new Webhook(config.blockWebhookURL);
                     const embed = new MessageBuilder()

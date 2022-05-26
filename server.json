@@ -14,7 +14,7 @@
         "maxPlayers": 75,
         "minVotePlayers": 1,
         "minVoteRate": 0.85,
-        "defaultTime": 20,
+        "defaultTime": 100,
         "startTimer": 0.5,
         "allowLateEnter": true
     },
