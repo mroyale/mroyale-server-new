@@ -46,6 +46,12 @@ class Match {
             this.autoStartOn = true;
         }
 
+        // This was never done, yet I wonder why
+        // If player count surpasses max players, start immediately.
+        if (this.players.length >= config.match.maxPlayers) {
+            this.start();
+        }
+
         return this.getNextPlayerId();
     }
 
