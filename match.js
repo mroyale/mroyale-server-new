@@ -12,7 +12,7 @@ class Match {
         this.roomName = roomName;
         this.isPrivate = isPrivate;
         this.autoStartOn = (this.roomName === "" && this.isPrivate === true ? false : true);
-        this.forceStopped = false;
+        this.forceStopped = (this.roomName === "" && this.isPrivate === true ? false : true);
         this.startingTimer = null;
         this.startTimer = 0;
         this.votes = 0;
@@ -237,7 +237,7 @@ class Match {
 
     tick() {
         if (this.ticks > 0) {
-            if (this.autoStartOn) this.ticks -= 1;
+            if (this.autoStartOn && !this.forceStopped) this.ticks -= 1;
         } else {
             this.start();
             clearInterval(this.tickTimer);
