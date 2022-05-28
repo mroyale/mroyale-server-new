@@ -1,4 +1,3 @@
-const config = require('./server.json');
 const { Webhook, MessageBuilder } = require('discord-webhook-node');
 const { ByteBuffer } = require('./buffer.js');
 const { Shor2 } = require('./util/shor2.js');
@@ -6,6 +5,8 @@ const { Shor2 } = require('./util/shor2.js');
 class Player {
     constructor(server, name, team, skin, match, mode, isDev) {
         this.client = server;
+        this.socket = server.socket;
+
         this.name = name;
         this.team = team;
         this.skin = skin;
@@ -18,8 +19,8 @@ class Player {
             this.isDev = true;
         }
 
-        if (this.name.length === 0) { this.name = config.game.defaultName };
-        if (this.team.length === 0) { this.team = config.game.defaultTeam };
+        if (this.name.length === 0) { this.name = this.socket.defaultName };
+        if (this.team.length === 0) { this.team = this.socket.defaultTeam };
 
         this.team = this.team.toUpperCase();
         this.team.length > 3 ? this.team.length = 3 : this.team.length;
@@ -161,8 +162,8 @@ class Player {
                 }
                 switch(pos) {
                     case 0x01 : {
-                        if (!this.match.isPrivate && config.webhookURL !== "") {
-                            const webhook = new Webhook(config.webhookURL);
+                        if (!this.match.isPrivate && this.socket.webhookURL !== "") {
+                            const webhook = new Webhook(this.socket.webhookURL);
                             const embed = new MessageBuilder().setColor(0xffff00).setTitle(`**${this.name.toUpperCase()}** has achieved **#1** Victory Royale!`).addField('Map', this.match.levelData ? this.match.levelData["shortname"] : this.match.world, true).addField('Mode', mode, true);
                             webhook.send(embed);
                             break;
@@ -177,8 +178,8 @@ class Player {
             case 0x19 : /* PLAYER_SNITCH */ {
                 if (this.isDev) return;
 
-                if (config.blockWebhookURL !== "" && !this.client.blocked) {
-                    const webhook = new Webhook(config.blockWebhookURL);
+                if (this.socket.blockWebhookURL !== "" && !this.client.blocked) {
+                    const webhook = new Webhook(this.socket.blockWebhookURL);
                     const embed = new MessageBuilder()
                                         .setColor(0x267B8B)
                                         .setTitle(`Player blocked: **${this.name.toUpperCase()}**`)
