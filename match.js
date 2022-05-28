@@ -1,10 +1,10 @@
-const config = require('./server.json');
 const { ByteBuffer } = require('./buffer.js');
 const fs = require('fs');
 
 class Match {
     constructor(server, roomName, isPrivate, mode) {
         this.server = server;
+        this.socket = server.socket;
 
         this.world = "lobby"
         this.closed = false;
@@ -12,7 +12,6 @@ class Match {
         this.roomName = roomName;
         this.isPrivate = isPrivate;
         this.autoStartOn = (this.roomName === "" && this.isPrivate === true ? false : true);
-        this.forceStopped = (this.roomName === "" && this.isPrivate === true ? false : true);
         this.startingTimer = null;
         this.startTimer = 0;
         this.votes = 0;
@@ -20,14 +19,14 @@ class Match {
         this.lastId = -1;
         this.players = [];
         this.mode = mode;
-        this.allowLateEnter = config.match.allowLateEnter;
+        this.allowLateEnter = this.socket.allowLateEnter;
 
         this.tickTimer = setInterval(() => { this.tick(); }, 1000);
 
-        this.maxPlayers = config.match.maxPlayers;
-        this.minVotes = config.match.minVotePlayers;
-        this.voteRate = config.match.minVoteRate;
-        this.defaultTime = config.match.defaultTime;
+        this.maxPlayers = this.socket.maxPlayers;
+        this.minVotes = this.socket.minVoters;
+        this.voteRate = this.socket.minVotes;
+        this.defaultTime = this.socket.defaultTime;
         this.ticks = this.defaultTime;
     }
 
@@ -44,12 +43,6 @@ class Match {
             this.autoStartOn = false;
         } else if (this.mode === 1 /* PvP */ && this.players.length > 1 && !this.forceStopped) {
             this.autoStartOn = true;
-        }
-
-        // This was never done, yet I wonder why
-        // If player count surpasses max players, start immediately.
-        if (this.players.length >= config.match.maxPlayers) {
-            this.start();
         }
 
         return this.getNextPlayerId();
@@ -192,7 +185,7 @@ class Match {
 
         this.broadPlayerList();
 
-        if (!this.playing && this.startingTimer === null && this.players.length >= config.match.maxPlayers) {
+        if (!this.playing && this.startingTimer === null && this.players.length >= this.socket.maxPlayers) {
             this.startingTimer = setTimeout(() => { this.start(); }, 3000)
         }
     }
@@ -219,18 +212,18 @@ class Match {
         if (this.playing) return;
         this.playing = true;
 
-        var worlds = []
+        var worlds = [];
         var mode = "Vanilla";
         switch (this.mode) {
-            case 0 : { worlds = config.worlds.royale; break; }
-            case 1 : { worlds = (config.worlds.pvp.length !== 0 ? config.worlds.pvp : config.worlds.royale); mode = "PVP"; break; }
-            case 2 : { worlds = (config.worlds.hell.length !== 0 ? config.worlds.hell : config.worlds.royale); mode = "Hell"; break; }
-            default : { worlds = config.worlds.royale; break; }
+            case 0 : { worlds = this.socket.worlds; break; }
+            case 1 : { worlds = (this.socket.worldsPVP.length !== 0 ? this.socket.worldsPVP : this.socket.worlds); mode = "PVP"; break; }
+            case 2 : { worlds = (this.socket.worldsHell.length !== 0 ? this.socket.worldsHell : this.socket.worlds); mode = "Hell"; break; }
+            default : { worlds = this.socket.worlds; break; }
         }
         
         this.world = worlds[Math.floor(Math.random() * worlds.length)];
         this.broadLoadWorld();
-        setTimeout(() => { this.broadStartTimer(config.match.startTimer); }, 1000)
+        setTimeout(() => { this.broadStartTimer(this.socket.startTimer); }, 1000)
 
         console.log("Starting match [", this.players.length, "players //", this.world, "//", mode, "]")
     }

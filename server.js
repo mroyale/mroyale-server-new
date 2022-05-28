@@ -19,6 +19,7 @@ server.on('connection', function(socket) {
     let self = socket;
 
     self.server = socket;
+    self.socket = factory;
     self.address = null; // "";
     self.account = null;
     self.username = "";
@@ -219,7 +220,7 @@ server.on('connection', function(socket) {
         let fmatch = null;
         for (var i=0; i<matches.length; i++) {
             var match = matches[i];
-            if (!match.closed && match.players.length < config.match.maxPlayers && gameMode === match.mode && isPrivate === match.isPrivate) {
+            if (!match.closed && match.players.length < socket.maxPlayers && gameMode === match.mode && isPrivate === match.isPrivate) {
                 if (!match.allowLateEnter && match.playing) {
                     continue;
                 }
@@ -277,11 +278,50 @@ server.on('connection', function(socket) {
 });
 
 
-class MarioRoyaleSocket {
+class RoyaleSocket {
     constructor() {
-        this.statusPath = config.main.statusURL;
         this.log = false;
+
+        this.updateConfig();
+        this.readConfig();
         setInterval(() => this.generalUpdate(), 5000);
+    }
+
+    readConfig() {
+        fs.watch('./server.json', (eventName, filename) => {
+            if (!filename) console.error("There was a problem trying to read the config file.");
+
+            this.updateConfig();
+        })
+    }
+
+    updateConfig() {
+        try {
+            let configFile = fs.readFileSync('./server.json');
+            configFile = JSON.parse(configFile);
+
+            this.webhookURL = configFile["webhookURL"];
+            this.blockHookURL = configFile["blockWebhookURL"];
+            this.statusPath = configFile.main["statusURL"];
+
+            this.defaultName = configFile.game["defaultName"];
+            this.defaultTeam = configFile.game["defaultTeam"];
+
+            this.maxPlayers = configFile.match["maxPlayers"];
+            this.minVoters = configFile.match["minVotePlayers"];
+            this.minVotes = configFile.match["minVoteRate"];
+            this.defaultTime = configFile.match["defaultTime"];
+            this.startTimer = configFile.match["startTimer"];
+            this.allowLateEnter = configFile.match["allowLateEnter"];
+
+            this.worlds = configFile.worlds["royale"];
+            this.worldsPVP = configFile.worlds["pvp"];
+            this.worldsHell = configFile.worlds["hell"];
+
+            console.log("Updated configuration successfully.");
+        } catch(e) {
+            console.error("Could not update configuration\n" + e)
+        }
     }
 
     generalUpdate() {
@@ -294,5 +334,5 @@ class MarioRoyaleSocket {
     }
 }
 
-let factory = new MarioRoyaleSocket();
+let factory = new RoyaleSocket();
 console.log("Log opened.");

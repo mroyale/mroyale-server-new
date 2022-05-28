@@ -8,5 +8,4 @@ Port project of the Mario Royale backend server in node.js
 - Can somewhat broad player state
 ## TODO
 - Load worlds from world without editing config file
-- Save config to MarioRoyaleSocket and update when the file updates
 - Implement maintenance functionality
