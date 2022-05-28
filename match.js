@@ -186,7 +186,7 @@ class Match {
 
         this.broadPlayerList();
 
-        if (!this.playing && this.startingTimer === null && this.players.length >= 5) {
+        if (!this.playing && this.startingTimer === null && this.players.length >= config.match.maxPlayers) {
             this.startingTimer = setTimeout(() => { this.start(); }, 3000)
         }
     }
