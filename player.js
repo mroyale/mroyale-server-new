@@ -188,6 +188,7 @@ class Player {
                                             .addField('Reason', 'reason packet TBAdded', true);
                         webhook.send(embed);
                     }
+                    console.log("PLAYER BLOCKED:", this.name.toUpperCase());
                     this.client.blocked = true;
                     this.client.close();
                     break;

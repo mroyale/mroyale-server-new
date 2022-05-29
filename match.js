@@ -195,8 +195,8 @@ class Match {
             var player = this.players[i];
             if (!player.loaded) continue;
 
-            const decoded = Buffer.from(data);
-            console.log(decoded)
+            const decoded = JSON.parse(data);
+            console.log(decoded);
         }
     }
 
