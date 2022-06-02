@@ -1,4 +1,4 @@
-const { Webhook, MessageBuilder } = require('discord-webhook-node');
+//const { Webhook, MessageBuilder } = require('discord-webhook-node');
 const { ByteBuffer } = require('./buffer.js');
 const { Shor2 } = require('./util/shor2.js');
 
@@ -71,7 +71,7 @@ class Player {
     }
 
     serializePlayerObject() {
-        return new ByteBuffer().serializePlayer(this.id, this.level, this.zone, this.skin, this.isDev);
+        
     }
 
     sendLevelSelect() {
@@ -133,18 +133,31 @@ class Player {
             case 0x10 : /* CREATE_PLAYER_OBJECT */ {
                 var level = message[0];
                 var zone = message[1];
+                var decodedPos = (message[5] & 0xFF) | ((message[4] << 8) & 0xFF00) | ((message[3] << 16) & 0xFF0000) | ((message[2] << 24) & 0xFF0000)
+                var pos = {'x': decodedPos & 0xFFFF, 'y': (decodedPos >> 16) & 0xFFFF};
 
                 this.level = level;
                 this.zone = zone;
+                this.posX = pos.x;
+                this.posY = pos.y;
                 this.dead = false;
 
                 for (var i=0; i<this.match.players.length; i++) {
                     var player = this.match.players[i];
-                    var pos = 0 | (parseInt(this.posX) & 0x0000FFFF) | ((parseInt(this.posY) << 16) & 0xFFFF0000);
-                    player.client.send(new Uint8Array([0x10, 0x00, this.id, 0x00, level, zone]), true)
+                    player.client.send(new ByteBuffer().createPlayer(this.id, this.level, this.zone, decodedPos, this.skin, this.isDev), true);
                 }
 
-                console.log("CREATE_PLAYER_OBJECT", level, zone);
+                break;
+            }
+
+            case 0x12 : /* UPDATE_PLAYER_OBJECT */ {
+                if (this.dead) return;
+
+                var level = message[0];
+                var zone = message[1];
+                var reverse = (message[11] == 1);
+
+                console.log(level, zone, reverse);
                 break;
             }
 
@@ -162,12 +175,12 @@ class Player {
                 }
                 switch(pos) {
                     case 0x01 : {
-                        if (!this.match.isPrivate && this.socket.webhookURL !== "") {
+                        /*if (!this.match.isPrivate && this.socket.webhookURL !== "") {
                             const webhook = new Webhook(this.socket.webhookURL);
                             const embed = new MessageBuilder().setColor(0xffff00).setTitle(`**${this.name.toUpperCase()}** has achieved **#1** Victory Royale!`).addField('Map', this.match.levelData ? this.match.levelData["shortname"] : this.match.world, true).addField('Mode', mode, true);
                             webhook.send(embed);
                             break;
-                        }
+                        }*/
                     }
                 }
 
@@ -179,7 +192,7 @@ class Player {
                 if (this.isDev) return;
 
                 if (!this.client.blocked) {
-                    if (this.socket.blockWebhookURL !== "") {
+                    /*if (this.socket.blockWebhookURL !== "") {
                         const webhook = new Webhook(this.socket.blockWebhookURL);
                         const embed = new MessageBuilder()
                                             .setColor(0x267B8B)
@@ -187,7 +200,7 @@ class Player {
                                             .addField('Map', this.match.world, true)
                                             .addField('Reason', 'reason packet TBAdded', true);
                         webhook.send(embed);
-                    }
+                    }*/
                     console.log("PLAYER BLOCKED:", this.name.toUpperCase());
                     this.client.blocked = true;
                     this.client.close();

@@ -38,13 +38,6 @@ class Match {
     addPlayer(player) {
         this.players.push(player);
         this.ticks = this.defaultTime;
-
-        if (this.mode === 1 /* PvP */ && this.players.length === 1) {
-            this.autoStartOn = false;
-        } else if (this.mode === 1 /* PvP */ && this.players.length > 1 && !this.forceStopped) {
-            this.autoStartOn = true;
-        }
-
         return this.getNextPlayerId();
     }
 
@@ -195,7 +188,7 @@ class Match {
             var player = this.players[i];
             if (!player.loaded) continue;
 
-            const decoded = JSON.parse(data);
+            const decoded = data;
             console.log(decoded);
         }
     }

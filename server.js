@@ -220,7 +220,7 @@ server.on('connection', function(socket) {
         let fmatch = null;
         for (var i=0; i<matches.length; i++) {
             var match = matches[i];
-            if (!match.closed && match.players.length < socket.maxPlayers && gameMode === match.mode && isPrivate === match.isPrivate) {
+            if (!match.closed && match.players.length < 75 && gameMode === match.mode && isPrivate === match.isPrivate) {
                 if (!match.allowLateEnter && match.playing) {
                     continue;
                 }
