@@ -177,7 +177,6 @@ class Match {
             for (var i=0; i<this.players.length; i++) {
                 let p = this.players[i];
                 if (!p.loaded || p === player) continue;
-                //p.client.send(new Uint8Array([0x10, p.id, 0x00, p.level, p.zone, (p.rawPos >> 24) & 0xFF, (p.rawPos >> 16) & 0xFF, (p.rawPos >> 8) & 0xFF, p.rawPos & 0xFF, p.skin, 0x00, p.isDev]), true);
                 p.client.send(new ByteBuffer().serializePlayer(p.id, p.level, p.zone, p.rawPos, p.skin, p.isDev), true);
             }
 
@@ -193,11 +192,31 @@ class Match {
     }
 
     objectEventTrigger(id, data) {
+        var level = data[0];
+        var zone = data[1];
+        var oid = (data[5] & 0xFF) | ((data[4] << 8) & 0xFF00) | ((data[3] << 16) & 0xFF0000) | ((data[2] << 24) & 0xFF0000);
+        var type = data[6];
+
         for (var i=0; i<this.players.length; i++) {
             var player = this.players[i];
-            if (!player.loaded) continue;
+            if (!player.loaded) return;
 
-            const decoded = data;
+            player.client.send(new Uint8Array([0x20, 0x00, id, level, zone, data[2], data[3], data[4], data[5], type]), true);
+        }
+    }
+
+    tileEventTrigger(id, data) {
+        var level = data[0];
+        var zone = data[1];
+        var rawPos = (data[5] & 0xFF) | ((data[4] << 8) & 0xFF00) | ((data[3] << 16) & 0xFF0000) | ((data[2] << 24) & 0xFF0000)
+        var pos = {'x': rawPos & 0xFFFF, 'y': (rawPos >> 16) && 0xFFFF};
+        var type = data[6];
+
+        for (var i=0; i<this.players.length; i++) {
+            var player = this.players[i];
+            if (!player.loaded) return;
+
+            player.client.send(new Uint8Array([0x30, 0x00, id, level, zone, data[2], data[3], data[4], data[5], type]), true);
         }
     }
 

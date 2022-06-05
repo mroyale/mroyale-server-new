@@ -233,6 +233,14 @@ class Player {
                 break;
             }
 
+            case 0x30 : /* TILE_EVENT_TRIGGER */ {
+                if (this.dead) return;
+
+                this.match.tileEventTrigger(this.id, message);
+
+                break;
+            }
+
             case 0x21 : /* GET_COINS */ {
                 // This packet is sent when the player object spawns for whatever reason.
                 // It has no ingame use and it's not even implemented in PyRoyale, but i'll just make this send the coin count.
