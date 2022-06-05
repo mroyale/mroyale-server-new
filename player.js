@@ -155,9 +155,25 @@ class Player {
 
                 var level = message[0];
                 var zone = message[1];
-                var reverse = (message[11] == 1);
+                var sprite = message[10];
+                var reverse = (message[11] === 1);
 
-                console.log(level, zone, reverse);
+                this.level = level;
+                this.zone = zone;
+                this.sprite = sprite;
+
+                var b1 = new Uint8Array([message[2], message[3], message[4], message[5]]); // x position
+                var v1 = new DataView(b1.buffer); // x position
+                var b2 = new Uint8Array([message[6], message[7], message[8], message[9]]); // y position
+                var v2 = new DataView(b2.buffer); // y position
+
+                var posX = v1.getFloat32(0);
+                var posY = v2.getFloat32(0);
+                this.posX = posX;
+                this.posY = posY;
+
+                /* Incoming the worst one-liner in all of 2022 */
+                this.match.broadPlayerUpdate(this, new Uint8Array([0x12, 0x00, this.id, this.level, this.zone, message[2], message[3], message[4], message[5], message[6], message[7], message[8], message[9], message[10], message[11]]));
                 break;
             }
 
@@ -189,7 +205,7 @@ class Player {
             }
 
             case 0x19 : /* PLAYER_SNITCH */ {
-                if (this.isDev) return;
+                if (this.isDev || !this.socket.virginSlayerEnabled) return;
 
                 if (!this.client.blocked) {
                     /*if (this.socket.blockWebhookURL !== "") {

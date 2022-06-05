@@ -281,6 +281,7 @@ server.on('connection', function(socket) {
 class RoyaleSocket {
     constructor() {
         this.log = false;
+        this.virginSlayerEnabled = false;
 
         this.updateConfig();
         this.readConfig();

@@ -24,7 +24,7 @@ class ByteBuffer {
 
     /* returns Uint8Array */
     createPlayer(/* int */ id, /* byte */ level, /* byte */ zone, /* shor2 */ pos, /* byte */ skin, /* bool */ isDev) {
-        return new Uint8Array([0x10, id, 0x00, level, zone, (pos >> 24) & 0xFF, (pos >> 16) & 0xFF, (pos >> 8) & 0xFF, pos & 0xFF, skin, isDev]);
+        return new Uint8Array([0x10, id, 0x00, level, zone, (pos >> 24) & 0xFF, (pos >> 16) & 0xFF, (pos >> 8) & 0xFF, pos & 0xFF, skin, 0x00, isDev]);
     }
 }
 

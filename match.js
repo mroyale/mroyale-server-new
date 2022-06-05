@@ -161,6 +161,16 @@ class Match {
         return playersData
     }
 
+    broadPlayerUpdate(player, packet) {
+        for (var i=0; i<this.players.length; i++) {
+            var p = this.players[i];
+            if (!p.loaded || p.id === player.id) { continue; } /* Don't send to players that aren't loaded, or that the player is ourself. */
+            if (p.level !== player.level || p.zone !== player.zone) { continue; } /* Ensure we're sending to players that are in the same area as us. */
+
+            p.client.send(packet, true)
+        }
+    }
+
     onPlayerReady(player) {
         if (!this.playing) { }
 
@@ -189,7 +199,6 @@ class Match {
             if (!player.loaded) continue;
 
             const decoded = data;
-            console.log(decoded);
         }
     }
 
