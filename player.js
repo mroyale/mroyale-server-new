@@ -37,7 +37,7 @@ class Player {
         this.voted = false;
         this.loaded = false;
         this.lobbier = false;
-        this.lastUpdatePkt = false;
+        this.lastUpdatePkt = null;
 
         this.wins = 0;
         this.deaths = 0;
@@ -105,6 +105,7 @@ class Player {
 
         if (this.match.world == "lobby") {
             if (this.isDev) this.sendLevelSelect();
+            if (this.match.levelData) this.match.initObjects();
             this.lobbier = true;
         }
 
@@ -122,9 +123,10 @@ class Player {
         this.dead = false;
         this.loaded = true;
         this.pendingWorld = null;
+        this.lastXOk = true;
+        this.flagTouched = false;
 
-        this.client.send(new ByteBuffer().assignPid(this.id, this.skin, this.isDev), true);
-
+        this.client.send(new ByteBuffer().assignPid(this.id, this.skin, this.isDev), true); // ASSIGN_PID
         this.match.onPlayerReady(this);
     }
 
@@ -151,30 +153,92 @@ class Player {
                 break;
             }
 
+            case 0x11 : /* KILL_PLAYER_OBJECT */ {
+                if (this.dead || this.win) return;
+
+                this.dead = true;
+                this.addDeath();
+                for (var i=0; i<this.match.players.length; i++) {
+                    var player = this.match.players[i];
+                    if (!player.loaded) return;
+
+                    player.client.send(new Uint8Array([0x11, (this.id >> 8) & 0xFF, (this.id >> 0) & 0xFF]), true)
+                }
+                this.addLeaderboardCoins(-10);
+
+                break;
+            }
+
             case 0x12 : /* UPDATE_PLAYER_OBJECT */ {
-                if (this.dead) return;
+                if (this.dead || (this.lastUpdatePkt === message)) return;
 
                 var level = message[0];
                 var zone = message[1];
                 var sprite = message[10];
                 var reverse = (message[11] === 1);
 
-                this.level = level;
-                this.zone = zone;
-                this.sprite = sprite;
-
                 var b1 = new Uint8Array([message[2], message[3], message[4], message[5]]); // x position
                 var v1 = new DataView(b1.buffer); // x position
                 var b2 = new Uint8Array([message[6], message[7], message[8], message[9]]); // y position
                 var v2 = new DataView(b2.buffer); // y position
+
+                if (this.level !== level || this.zone !== zone) {
+                    this.match.onPlayerWarp(this, level, zone);
+                }
+
+                if (this.level < level) {
+                    this.flagTouched = false;
+                }
+
+                this.level = level;
+                this.zone = zone;
+                this.sprite = sprite;
 
                 var posX = v1.getFloat32(0);
                 var posY = v2.getFloat32(0);
                 this.posX = posX;
                 this.posY = posY;
 
+                var zoneHeight = this.match.getZoneHeight(this.level, this.zone);
+                var zoneData = this.match.getZoneData(this.level, this.zone);
+                var x = parseInt(this.posX);
+                var y0 = parseInt(this.posY);
+                var y = zoneHeight-1-y0;
+
+                var tile = (() => {
+                    try { return zoneData[y][x]; }
+                    catch { return 30; }
+                })();
+                var def = (tile>>16)&0xff;
+                var extraData = (tile>>24)&0xff;
+
+                if (def === 160 && !this.flagTouched) {
+                    if (extraData === 1) {
+                        this.addLeaderboardCoins(20);
+                    } else if (extraData === 2) {
+                        this.addLife();
+                    }
+
+                    this.flagTouched = true;
+                }
+
                 /* Incoming the worst one-liner in all of 2022 */
                 this.match.broadPlayerUpdate(this, new Uint8Array([0x12, 0x00, this.id, this.level, this.zone, message[2], message[3], message[4], message[5], message[6], message[7], message[8], message[9], message[10], message[11]]));
+                this.lastUpdatePkt = message;
+                break;
+            }
+
+            case 0x13 : /* PLAYER_OBJECT_EVENT */ {
+                if (this.dead || this.win) return;
+
+                var type = message[0];
+                for (var i=0; i<this.match.players.length; i++) {
+                    var player = this.match.players[i];
+                    if (!player.loaded) return;
+
+                    player.client.send(new Uint8Array([0x13, 0x00, this.id, type]), true);
+                }
+
                 break;
             }
 
@@ -198,9 +262,25 @@ class Player {
                             webhook.send(embed);
                             break;
                         }*/
+                        this.addLeaderboardCoins(100);
+                        break;
+                    }
+
+                    case 0x02 : {
+                        this.addLeaderboardCoins(50);
+                        break;
+                    }
+
+                    case 0x03 : {
+                        this.addLeaderboardCoins(25);
+                        break;
                     }
                 }
 
+                var updatePkt = this.match.byteToArray(this.lastUpdatePkt);
+                var data = [0x12]
+                
+                this.match.broadPlayerUpdate(new Uint8Array(data.concat(updatePkt)));
                 this.match.broadWin(this.id, pos);
                 break;
             }
@@ -251,12 +331,48 @@ class Player {
         }
     }
 
-    addCoin() {
-        if (!this.lobbier) {
+    addCoin(add=true) {
+        if (!this.lobbier && add) {
             this.coins += 1;
         }
 
         this.client.send(new ByteBuffer().addCoin(), true);
+    }
+
+    addWin() {
+        if (!this.lobbier) {
+            this.wins += 1;
+        }
+    }
+
+    addDeath() {
+        if (!this.lobbier) {
+            this.deaths += 1;
+        }
+    }
+
+    addKill() {
+        if (!this.lobbier) {
+            this.kills += 1;
+        }
+    }
+
+    addLife() {
+        if (!this.lobbier) {
+            this.client.send(new Uint8Array([0x23]), true);
+        }
+
+        for (var i=0; i<30; i++) {
+            this.addCoin(false);
+        }
+    }
+
+    addLeaderboardCoins(coins) {
+        if (!this.lobbier) {
+            this.coins += coins;
+        }
+
+        this.client.send(new Uint8Array([0x22, (coins >> 24) & 0xFF, (coins >> 16) & 0xFF, (coins >> 8) & 0xFF, (coins >> 0) & 0xFF]), true)
     }
 }
 

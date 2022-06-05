@@ -28,6 +28,20 @@ class Match {
         this.voteRate = this.socket.minVotes;
         this.defaultTime = this.socket.defaultTime;
         this.ticks = this.defaultTime;
+
+        this.coins = [];
+    }
+
+    initObjects() {
+        var data = this.levelData;
+
+        data.world.forEach(level => {
+            level.zone.forEach(zone => {
+                zone.obj.forEach(obj => {
+                   if (obj.type === 97) { this.coins.push(obj.pos); }
+                })
+            })
+        })
     }
 
     getNextPlayerId() {
@@ -104,6 +118,8 @@ class Match {
         let msg = this.getLoadMsg();
         let data = this.getLevelData();
 
+        if (this.levelData) this.initObjects();
+
         for (var i=0; i<this.players.length; i++) {
             let player = this.players[i];
             player.loadWorld(this.world, msg, data);
@@ -172,7 +188,6 @@ class Match {
     }
 
     onPlayerReady(player) {
-
         if (this.world === "lobby" || !player.lobbier || !this.closed) {
             for (var i=0; i<this.players.length; i++) {
                 let p = this.players[i];
@@ -191,11 +206,37 @@ class Match {
         }
     }
 
+    getZoneHeight(level, zone) {
+        let prefix;
+
+        if (this.levelData.world[level].zone[zone].data) { prefix = this.levelData.world[level].zone[zone].data; }
+        else if (this.levelData.world[level].zone[zone].layers) { prefix = this.levelData.world[level].zone[zone].layers[0].data; }
+        else { return new Error("##ERROR## No data nor layers!") };
+
+        return prefix.length;
+    }
+
+    getZoneObjects(level, zone) {
+        if (this.levelData.world[level].zone[zone].data) { return this.levelData.world[level].zone[zone].obj }
+        else { return new Error("##ERROR## No objects in level!") }
+    }
+
+    getZoneData(level, zone) {
+        if (this.levelData.world[level].zone[zone].data) { return this.levelData.world[level].zone[zone].data; }
+        else if (this.levelData.world[level].zone[zone].layers) { return this.levelData.world[level].zone[zone].layers[0].data; }
+        else { return new Error("##ERROR## No data nor layers!") }
+    }
+
     objectEventTrigger(id, data) {
         var level = data[0];
         var zone = data[1];
         var oid = (data[5] & 0xFF) | ((data[4] << 8) & 0xFF00) | ((data[3] << 16) & 0xFF0000) | ((data[2] << 24) & 0xFF0000);
         var type = data[6];
+
+        if (this.coins.includes(oid) && type === 160) {
+            this.getPlayer(id).addCoin();
+            this.coins = this.coins.filter(id => id !== oid);
+        }
 
         for (var i=0; i<this.players.length; i++) {
             var player = this.players[i];
@@ -208,15 +249,72 @@ class Match {
     tileEventTrigger(id, data) {
         var level = data[0];
         var zone = data[1];
-        var rawPos = (data[5] & 0xFF) | ((data[4] << 8) & 0xFF00) | ((data[3] << 16) & 0xFF0000) | ((data[2] << 24) & 0xFF0000)
-        var pos = {'x': rawPos & 0xFFFF, 'y': (rawPos >> 16) && 0xFFFF};
+        var rawPos = (data[5] & 0xFF) | ((data[4] << 8) & 0xFF00) | ((data[3] << 16) & 0xFF0000) | ((data[2] << 24) & 0xFF0000);
+        var pos = {'x': rawPos & 0xFFFF, 'y': (rawPos >> 16) & 0xFFFF};
         var type = data[6];
+        var rep = 98831; // tile data for empty item blocks
+
+        if (this.levelData) {
+            var zoneHeight = this.getZoneHeight(level, zone);
+            var zoneData = this.getZoneData(level, zone);
+
+            var x = pos.x;
+            var y0 = pos.y;
+            var y = zoneHeight-1-y0;
+            var tile = zoneData[y][x];
+            var def = (tile>>16)&0xff;
+            var extraData = (tile>>24)&0xff;
+
+            if (def === 18 /* Coin Block */ || def === 22 /* Hidden Coin Block */) {
+                this.getPlayer(id).addCoin();
+                zoneData[y][x] = rep;
+            } else if (def === 19 /* Multi Coin Block */) {
+                if (extraData > 1) {
+                    this.getPlayer(id).addCoin();
+                    zoneData[y][x] = (tile&0xffffff)|((extraData-1)<<24);
+                } else {
+                    if (extraData === 1) this.getPlayer(id).addCoin();
+                    zoneData[y][x] = rep;
+                }
+            }
+        }
 
         for (var i=0; i<this.players.length; i++) {
             var player = this.players[i];
             if (!player.loaded) return;
 
             player.client.send(new Uint8Array([0x30, 0x00, id, level, zone, data[2], data[3], data[4], data[5], type]), true);
+        }
+    }
+
+    byteToArray(data) {
+        var result = [];
+        for (var i = 0; i < data.byteLength; i++) {
+            result[i] = data[i];
+        }
+
+        return result;
+    }
+
+    onPlayerWarp(player, level, zone) {
+        for (var i=0; i<this.players.length; i++) {
+            var p = this.players[i];
+            if (!p.loaded || p.lastUpdatePkt === null || p.id === player.id) {
+                continue;
+            }
+            
+            // Tells fellows that the player warped
+            if (p.level === player.level && p.zone === player.zone) {
+                p.client.send(new ByteBuffer().serializePlayer(player.id, level, zone, player.rawPos, player.skin, player.isDev), true);
+            } else if (p.level !== level || p.zone !== zone) {
+                continue;
+            }
+
+            var updatePkt = this.byteToArray(p.lastUpdatePkt);
+            var data = [0x12, (p.id >> 8) & 0xFF, (p.id >> 0) & 0xFF]
+            data = data.concat(updatePkt)
+
+            player.client.send(new Uint8Array(data), true);
         }
     }
 
