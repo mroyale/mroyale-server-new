@@ -138,13 +138,14 @@ class Player {
 
                 this.level = level;
                 this.zone = zone;
+                this.rawPos = decodedPos;
                 this.posX = pos.x;
                 this.posY = pos.y;
                 this.dead = false;
 
                 for (var i=0; i<this.match.players.length; i++) {
                     var player = this.match.players[i];
-                    player.client.send(new ByteBuffer().createPlayer(this.id, this.level, this.zone, decodedPos, this.skin, this.isDev), true);
+                    player.client.send(new ByteBuffer().serializePlayer(this.id, this.level, this.zone, decodedPos, this.skin, this.isDev), true);
                 }
 
                 break;

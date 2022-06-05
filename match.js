@@ -172,20 +172,19 @@ class Match {
     }
 
     onPlayerReady(player) {
-        if (!this.playing) { }
 
         if (this.world === "lobby" || !player.lobbier || !this.closed) {
             for (var i=0; i<this.players.length; i++) {
-                let player = this.players[i];
-                if (!player.loaded) continue;
-                this.server.send(player.serializePlayerObject(), true);
+                let p = this.players[i];
+                if (!p.loaded || p === player) continue;
+                //p.client.send(new Uint8Array([0x10, p.id, 0x00, p.level, p.zone, (p.rawPos >> 24) & 0xFF, (p.rawPos >> 16) & 0xFF, (p.rawPos >> 8) & 0xFF, p.rawPos & 0xFF, p.skin, 0x00, p.isDev]), true);
+                p.client.send(new ByteBuffer().serializePlayer(p.id, p.level, p.zone, p.rawPos, p.skin, p.isDev), true);
             }
 
             if (this.startTimer !== 0 || this.closed) {
                 player.setStartTimer(this.startTimer);
             }
         }
-
         this.broadPlayerList();
 
         if (!this.playing && this.startingTimer === null && this.players.length >= this.socket.maxPlayers) {
@@ -205,7 +204,7 @@ class Match {
     voteStart() {
         this.votes += 1;
 
-        if (!this.playing && this.votes >= this.players.length * 0.85) {
+        if (!this.playing && this.votes >= this.players.length * this.socket.minVoters) {
             this.start();
         }
     }
