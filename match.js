@@ -233,7 +233,7 @@ class Match {
         var oid = (data[5] & 0xFF) | ((data[4] << 8) & 0xFF00) | ((data[3] << 16) & 0xFF0000) | ((data[2] << 24) & 0xFF0000);
         var type = data[6];
 
-        if (this.coins.includes(oid) && type === 160) {
+        if (this.coins.includes(oid)) {
             this.getPlayer(id).addCoin();
             this.coins = this.coins.filter(id => id !== oid);
         }
@@ -326,7 +326,7 @@ class Match {
         }
     }
 
-    start(forced=false) {
+    start() {
         if (this.playing) return;
         this.playing = true;
 

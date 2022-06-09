@@ -15,12 +15,13 @@ let players = []; // in-game players
 let matches = []; // public matches
 let authd = []; // authenticated users
 
-server.on('connection', function(socket) {
+server.on('connection', function(socket, req) {
     let self = socket;
 
     self.server = socket;
     self.socket = factory;
-    self.address = null; // "";
+    self.controller = new RoyaleController(socket);
+    self.address = req.socket.remoteAddress;
     self.account = null;
     self.username = "";
 
@@ -35,7 +36,7 @@ server.on('connection', function(socket) {
 
     self.dcTimer = null;
 
-    setState("l"); // login
+    self.controller.setState("l"); // login
 
     socket.on('message', function(msg) {
         var data;
@@ -78,11 +79,11 @@ server.on('connection', function(socket) {
                         self.close();
                     }
 
-                    self.player = new Player(self, data["name"], data["team"], data["skin"], getMatch(data["team"], data["private"], data["gm"]), data["gm"], false);
+                    self.player = new Player(self, data["name"], data["team"], data["skin"], self.controller.getMatch(data["team"], data["private"], data["gm"]), data["gm"], false);
                     players.push(self.player);
-                    loginSuccess();
+                    self.controller.loginSuccess();
 
-                    setState("g"); // ingame
+                    self.controller.setState("g"); // ingame
                     break;
                 }
 
@@ -92,7 +93,7 @@ server.on('connection', function(socket) {
                     }
 
                     if (authd.includes(data["username"])) {
-                        sendJSON({"type":"llg", "status":false, "msg": "account already in use"})
+                        self.controller.sendJSON({"type":"llg", "status":false, "msg": "account already in use"})
                     }
 
                     let msg = {"type": "llg", "status": true, "msg": {"username":data["username"],"nickname":data["username"], "squad": "lol", "coins":420, "skins":[0,1,2,3], "skin":0}}
@@ -100,7 +101,7 @@ server.on('connection', function(socket) {
                     self.account = msg["msg"];
                     authd.push(data["username"])
 
-                    sendJSON(msg);
+                    self.controller.sendJSON(msg);
                     break;
                 }
 
@@ -108,9 +109,10 @@ server.on('connection', function(socket) {
                     let data = Captcha();
                     data.value = data.value.toUpperCase();
 
+                    /* WARNING: nodejs-captcha data always starts data with data:image, so the client will soon be updated to account for this. */
                     let msg = {"type":"lrc", "data":data.image}
 
-                    sendJSON(msg);
+                    self.controller.sendJSON(msg);
                     break;
                 }
 
@@ -208,7 +210,40 @@ server.on('connection', function(socket) {
         self.player.handleBinary(code, data);
     }
 
-    function getMatch(roomName, isPrivate, gameMode) {
+    function removeMatch(match) {
+        matches = matches.filter(match => match !== match);
+    }
+
+    function getJSON(data) {
+        return JSON.parse(data);
+    };
+
+    sockets.push(self);
+});
+
+class RoyaleController {
+    constructor(server) {
+        this.server = server;
+    }
+
+    sendJSON(data) {
+        this.server.send(JSON.stringify(data));
+    };
+
+    setState(state) {
+        this.server.stat = this.server.pendingStat = state;
+        this.sendJSON({"packets": [
+            {"state": state, "type": "s00"}
+        ], "type": "s01"})
+    }
+
+    loginSuccess() {
+        this.sendJSON({"packets": [
+            {"name": this.server.player.name, "team": this.server.player.team, "skin": this.server.player.skin, "type": "l01"}
+        ], "type": "s01"})
+    }
+
+    getMatch(roomName, isPrivate, gameMode) {
         if (isPrivate && roomName === "") /* Make new match for offline mode */ {
             return new Match(socket, "", "", gameMode);
         }
@@ -226,53 +261,13 @@ server.on('connection', function(socket) {
         }
 
         if (fmatch === null) {
-            fmatch = new Match(socket, roomName, isPrivate, gameMode);
+            fmatch = new Match(this.server, roomName, isPrivate, gameMode);
             matches.push(fmatch);
         }
 
         return fmatch;
     }
-
-    function removeMatch(match) {
-        matches = matches.filter(match => match !== match);
-    }
-
-    function updateMatch(match, value, newValue) {
-        for (var i=0; i<matches.length; i++) {
-            if (matches[i] === match) {
-                matches[i][value] = newValue;
-            }
-        }
-    }
-
-    function loginSuccess() {
-        sendJSON({"packets": [
-            {"name": self.player.name, "team": self.player.team, "skin": self.player.skin, "type": "l01"}
-        ], "type": "s01"})
-    }
-
-    function setState(state) {
-        self.stat = self.pendingStat = state;
-        sendJSON({"packets": [
-            {"state": state, "type": "s00"}
-        ], "type": "s01"})
-    };
-
-    function block(reason) {
-        self.blocked = true;
-    };
-
-    function sendJSON(data) {
-        self.send(JSON.stringify(data));
-    };
-
-    function getJSON(data) {
-        return JSON.parse(data);
-    };
-
-    sockets.push(self);
-});
-
+}
 
 class RoyaleSocket {
     constructor() {

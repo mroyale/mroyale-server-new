@@ -199,31 +199,34 @@ class Player {
                 this.posX = posX;
                 this.posY = posY;
 
-                var zoneHeight = this.match.getZoneHeight(this.level, this.zone);
-                var zoneData = this.match.getZoneData(this.level, this.zone);
-                var x = parseInt(this.posX);
-                var y0 = parseInt(this.posY);
-                var y = zoneHeight-1-y0;
+                if (this.match.levelData) {
+                    var zoneHeight = this.match.getZoneHeight(this.level, this.zone);
+                    var zoneData = this.match.getZoneData(this.level, this.zone);
+                    var x = parseInt(this.posX);
+                    var y0 = parseInt(this.posY);
+                    var y = zoneHeight-1-y0;
 
-                var tile = (() => {
-                    try { return zoneData[y][x]; }
-                    catch { return 30; }
-                })();
-                var def = (tile>>16)&0xff;
-                var extraData = (tile>>24)&0xff;
+                    var tile = (() => {
+                        try { return zoneData[y][x]; }
+                        catch { return 30; }
+                    })();
+                    var def = (tile>>16)&0xff;
+                    var extraData = (tile>>24)&0xff;
 
-                if (def === 160 && !this.flagTouched) {
-                    if (extraData === 1) {
-                        this.addLeaderboardCoins(20);
-                    } else if (extraData === 2) {
-                        this.addLife();
+                    if (def === 160 && !this.flagTouched) {
+                        if (extraData === 1) {
+                            this.addLeaderboardCoins(20);
+                        } else if (extraData === 2) {
+                            this.addLife();
+                        }
+
+                        this.flagTouched = true;
                     }
-
-                    this.flagTouched = true;
                 }
+                
 
                 /* Incoming the worst one-liner in all of 2022 */
-                this.match.broadPlayerUpdate(this, new Uint8Array([0x12, 0x00, this.id, this.level, this.zone, message[2], message[3], message[4], message[5], message[6], message[7], message[8], message[9], message[10], message[11]]));
+                this.match.broadPlayerUpdate(this, new Uint8Array([0x12, (this.id >> 8) & 0xFF, (this.id >> 0) & 0xFF, this.level, this.zone, message[2], message[3], message[4], message[5], message[6], message[7], message[8], message[9], message[10], message[11]]));
                 this.lastUpdatePkt = message;
                 break;
             }
@@ -318,14 +321,6 @@ class Player {
 
                 this.match.tileEventTrigger(this.id, message);
 
-                break;
-            }
-
-            case 0x21 : /* GET_COINS */ {
-                // This packet is sent when the player object spawns for whatever reason.
-                // It has no ingame use and it's not even implemented in PyRoyale, but i'll just make this send the coin count.
-
-                this.client.send(new Uint8Array([0x21, 0x00, this.coins, 0x00, 0x00, 0x00]));
                 break;
             }
         }

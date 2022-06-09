@@ -19,7 +19,7 @@
         "allowLateEnter": true
     },
     "worlds": {
-        "royale": ["world-1", "world-p", "world-special"],
+        "royale": ["world-snow"],
         "pvp": [],
         "hell": []
     }
