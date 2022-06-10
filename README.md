@@ -1,5 +1,7 @@
 # mroyale-server-new
-Port project of the Mario Royale backend server in node.js
+Project to port the Mario Royale websocket server to node.js using the [ws](https://github.com/websockets/ws) module.<br>
+**NOTE:** This project is on hold until Mario Royale v4.5.0 is completed, estimated time is unknown.
+
 ## Progress
 - Can create a match
 - Can enter lobby
